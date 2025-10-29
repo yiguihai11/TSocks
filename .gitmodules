@@ -1,6 +1,6 @@
 [submodule "app/src/main/jni/hev-socks5-tunnel"]
 	path = app/src/main/jni/hev-socks5-tunnel
-	url = https://github.com/heiher/hev-socks5-tunnel
+	url = https://github.com/yiguihai11/hev-socks5-tunnel
 [submodule "app/src/main/jni/shadowsocks-rust"]
 	path = app/src/main/jni/shadowsocks-rust
 	url = https://github.com/shadowsocks/shadowsocks-rust.git
