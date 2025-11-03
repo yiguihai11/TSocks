@@ -43,9 +43,6 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 	// Create device string in file descriptor format: fd://<fd>
 	deviceStr := fmt.Sprintf("fd://%s", fdStr)
 
-	var ctx context.Context
-	ctx, cancel = context.WithCancel(context.Background())
-
 	// Create engine key with file descriptor device and proxy configuration
 	key := &engine.Key{
 		MTU:     1500,
