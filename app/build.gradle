@@ -64,7 +64,7 @@ abiConfigs.each { config ->
             environment 'GOARCH', goArch
             environment 'CC', "${toolchainPath}/${clangArch}${minApi}-clang"
             // Build our JNI wrapper that imports tun2socks
-            commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so", 'tun2socks_android.go'
+            commandLine 'sh', '-c', 'go mod tidy && go build -buildmode=c-shared -ldflags="-s -w" -o "' + "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so" + '" tun2socks_android.go'
         }
     }
 }
