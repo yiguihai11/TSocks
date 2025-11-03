@@ -27,6 +27,13 @@ jobs:
       with:
         go-version: '1.25.3'
 
+    - name: Cache NDK
+      uses: actions/cache@v4
+      with:
+        path: android-ndk-r27d
+        key: ndk-r27d-${{ runner.os }}
+        restore-keys: ndk-r27d-
+
     - name: Download and set up Android NDK
       run: |
         sudo apt-get update -y
@@ -34,7 +41,6 @@ jobs:
         wget https://dl.google.com/android/repository/android-ndk-r27d-linux.zip
         unzip -q android-ndk-r27d-linux.zip
         echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r27d" >> $GITHUB_ENV
-        # Removed: echo "ndk.dir=$GITHUB_WORKSPACE/android-ndk-r27d" > local.properties
 
     - name: Grant execute permission to gradlew
       run: chmod +x gradlew
@@ -43,6 +49,17 @@ jobs:
       uses: gradle/actions/setup-gradle@v5
       with:
         gradle-version: 8.4
+        cache-read-only: false
+
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          gradle-${{ runner.os }}-
 
     - name: Build Go native libraries
       run: gradle buildGoLibs
@@ -50,10 +67,97 @@ jobs:
     - name: Build Android APK
       run: gradle assembleDebug
 
-    - name: Upload all APK artifacts (splits by architecture)
+    - name: Create upload directories
+      run: |
+        mkdir -p upload/{arm64,arm32,x64,x86}
+        cp app/build/outputs/apk/debug/app-arm64-v8a-debug.apk upload/arm64/ 2>/dev/null || echo "ARM64 APK not found"
+        cp app/build/outputs/apk/debug/app-armeabi-v7a-debug.apk upload/arm32/ 2>/dev/null || echo "ARM32 APK not found"
+        cp app/build/outputs/apk/debug/app-x86_64-debug.apk upload/x64/ 2>/dev/null || echo "x64 APK not found"
+        cp app/build/outputs/apk/debug/app-x86-debug.apk upload/x86/ 2>/dev/null || echo "x86 APK not found"
+
+    - name: Create architecture info file
+      run: |
+        cat > upload/README.md << 'EOF'
+# TSocks APK Downloads
+
+## 选择适合的APK版本
+
+### 📱 手机设备
+- **ARM64 (推荐)**: `arm64/` - 现代Android设备 (2018年后)
+- **ARM32**: `arm32/` - 较旧Android设备 (2018年前)
+
+### 💻 模拟器/PC
+- **x64**: `x64/` - 64位模拟器或PC
+- **x86**: `x86/` - 32位模拟器或PC
+
+## 如何选择？
+1. 不确定设备架构？选择 **ARM64** (兼容性最好)
+2. 查看设备设置 → 关于手机 → 处理器架构
+3. 使用 `adb shell getprop ro.product.cpu.abi` 命令查看
+
+## 文件说明
+- 每个APK仅包含对应架构的原生库
+- 文件大小: ~3-4MB per APK
+- 支持Android 7.0+ (API 26+)
+
+Build: ${{ github.sha }}
+Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+EOF
+
+    - name: Upload ARM64 APK (most devices)
       uses: actions/upload-artifact@v4
+      if: hashFiles('upload/arm64/*.apk') != ''
       with:
-        name: tsocks-apk-splits-debug
-        path: app/build/outputs/apk/debug/*.apk
-        if-no-files-found: warn
+        name: tsocks-arm64-v8a
+        path: upload/arm64/
         retention-days: 30
+
+    - name: Upload ARM32 APK (older devices)
+      uses: actions/upload-artifact@v4
+      if: hashFiles('upload/arm32/*.apk') != ''
+      with:
+        name: tsocks-armeabi-v7a
+        path: upload/arm32/
+        retention-days: 30
+
+    - name: Upload x64 APK (emulators)
+      uses: actions/upload-artifact@v4
+      if: hashFiles('upload/x64/*.apk') != ''
+      with:
+        name: tsocks-x86_64
+        path: upload/x64/
+        retention-days: 30
+
+    - name: Upload x86 APK (32-bit)
+      uses: actions/upload-artifact@v4
+      if: hashFiles('upload/x86/*.apk') != ''
+      with:
+        name: tsocks-x86
+        path: upload/x86/
+        retention-days: 30
+
+    - name: Build summary
+      run: |
+        echo "## 🚀 Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Architecture | APK File | Size | Target Devices |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------------|----------|------|----------------|" >> $GITHUB_STEP_SUMMARY
+
+        for arch in arm64 arm32 x64 x86; do
+          if [ -f "upload/$arch"/*.apk ]; then
+            size=$(du -h "upload/$arch"/*.apk | cut -f1)
+            apk_name=$(basename upload/$arch/*.apk)
+
+            case $arch in
+              arm64) desc="现代手机 (推荐)" ;;
+              arm32) desc="旧手机" ;;
+              x64) desc="64位模拟器" ;;
+              x86) desc="32位模拟器" ;;
+            esac
+
+            echo "| $arch | $apk_name | $size | $desc |" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "💡 **下载建议**: 大多数用户选择 `tsocks-arm64-v8a`" >> $GITHUB_STEP_SUMMARY
