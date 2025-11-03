@@ -30,6 +30,11 @@
         <item name="android:statusBarColor">?attr/colorPrimary</item>
     </style>
 
+    <!-- Base Widget Style -->
+    <style name="Widget.TSocks" parent="">
+        <!-- Base TSocks widget style - can be used for common attributes -->
+    </style>
+
     <!-- Card Styles -->
     <style name="Widget.TSocks.Card" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">@dimen/corner_radius_medium</item>
