@@ -39,13 +39,13 @@ jobs:
       run: |
         go install golang.org/x/mobile/cmd/gomobile@latest
         export PATH=$PATH:$(go env GOPATH)/bin
-        go get golang.org/x/mobile/bind
         gomobile init
 
     - name: Generate tun2socks.aar library
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
         cd jni/jnimobile
+        go get golang.org/x/mobile/bind
         go mod tidy
         gomobile bind -v -target=android -androidapi 26 -o ../../app/libs/tun2socks.aar .
         cd ../../ # Return to project root
