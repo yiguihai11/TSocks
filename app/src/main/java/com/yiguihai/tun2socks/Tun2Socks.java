@@ -119,7 +119,7 @@ public class Tun2Socks {
     /**
      * Gets connection statistics.
      */
-    public static native long[] getStats();
+    public static native long getStats();
 
     /**
      * Sets connection timeout.

@@ -212,7 +212,7 @@ func ValidateProxyType(proxyType string) bool {
 	return exists
 }
 
-//export Start (legacy method for compatibility)
+//export Start
 func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password *C.char, excludedIps *C.char) {
 	// Convert C strings to Go strings
 	typeStr := C.GoString(proxyType)
@@ -237,7 +237,7 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 	}
 }
 
-//export StartWithUrl (enhanced method with proxy URL)
+//export StartWithUrl
 func StartWithUrl(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
 	// Convert C strings to Go strings
 	proxyUrlStr := C.GoString(proxyUrl)
@@ -266,14 +266,14 @@ func StartWithUrl(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
 	}
 }
 
-//export StartWithConfig (enhanced method with config object)
+//export StartWithConfig
 func StartWithConfig(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
 	// For now, delegate to URL-based method
 	// In a full implementation, this would parse a more complex config structure
 	StartWithUrl(tunFd, proxyUrl, excludedIps)
 }
 
-//export StopWithLogger (enhanced stop method with logger)
+//export StopWithLogger
 func StopWithLogger() {
 	// Use the existing stop mechanism
 	if cancel != nil {
@@ -296,19 +296,10 @@ func Stop() {
 }
 
 //export getStats
-func getStats() C.jlongArray {
-	// Return dummy stats for now - [bytesUp, bytesDown, connections]
-	stats := []int64{1024, 2048, 5}
-
-	// Convert to Java long array
-	jvm := C.GetJNIEnv()
-	if jvm == nil {
-		return nil
-	}
-
-	// This is a simplified implementation
-	// In a full implementation, you would need proper JNI array creation
-	return C.jlongArray(nil) // Placeholder
+func getStats() C.jlong {
+	// Return a single stat for now - bytes uploaded
+	// In a full implementation, you would create and return a Java long array
+	return 1024
 }
 
 //export setTimeout
