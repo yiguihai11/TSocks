@@ -54,7 +54,7 @@ abiConfigs.each { config ->
     def taskName = "buildGoLib_${abi}"
     if (!tasks.findByPath(taskName)) { // Check if task already exists
         tasks.register(taskName, Exec) {
-            workingDir '../../jni/jnimobile' // Go source code is in project root jni/jnimobile
+            workingDir "${rootDir}/jni/jnimobile" // Use project root relative path
             doFirst {
                 // Ensure output directory exists
                 file("${project.projectDir}/src/main/jniLibs/${abi}").mkdirs()
