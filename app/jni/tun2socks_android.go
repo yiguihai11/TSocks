@@ -6,11 +6,8 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
-	"github.com/xjasonlyu/tun2socks/v2/core/device/fdbased"
 	"github.com/xjasonlyu/tun2socks/v2/engine"
-	"github.com/xjasonlyu/tun2socks/v2/proxy"
 )
 
 var cancel context.CancelFunc
@@ -27,32 +24,34 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 
 	fdStr := strconv.Itoa(int(tunFd))
 
-	// Create server address with port
+	// Create server address with port for proxy
 	serverAddr := fmt.Sprintf("%s:%d", serverGo, portGo)
 
-	// Use the FD-based device model, which is perfect for Android VpnService
-	dev, err := fdbased.Open(fdStr, 1500, 0)
-	if err != nil {
-		fmt.Printf("Failed to create FD-based device: %v\n", err)
-		return
+	// Create proxy string in format: protocol://[user:pass@]server:port
+	proxyStr := fmt.Sprintf("socks5://%s:%s@%s", passwordGo, passwordGo, serverAddr)
+
+	// For now, we only support SOCKS5, but can be expanded based on proxyTypeGo
+	switch proxyTypeGo {
+	case "socks5":
+		proxyStr = fmt.Sprintf("socks5://%s:%s@%s", passwordGo, passwordGo, serverAddr)
+	case "http":
+		proxyStr = fmt.Sprintf("http://%s:%s@%s", passwordGo, passwordGo, serverAddr)
+	default:
+		proxyStr = fmt.Sprintf("socks5://%s:%s@%s", passwordGo, passwordGo, serverAddr)
 	}
 
-	// For now, we only support SOCKS5 as an example.
-	// We will expand this later based on proxyTypeGo
-	proxyHandler, err := proxy.NewSocks5(serverAddr, passwordGo, "")
-	if err != nil {
-		fmt.Printf("Failed to create proxy handler: %v\n", err)
-		return
-	}
+	// Create device string in file descriptor format: fd://<fd>
+	deviceStr := fmt.Sprintf("fd://%s", fdStr)
 
 	var ctx context.Context
 	ctx, cancel = context.WithCancel(context.Background())
 
-	// Create engine key with the required configurations
+	// Create engine key with file descriptor device and proxy configuration
 	key := &engine.Key{
-		Device: dev,
-		Proxy:  proxyHandler,
-		// Add other necessary configurations
+		MTU:     1500,
+		Device:  deviceStr,  // Use file descriptor device format
+		Proxy:   proxyStr,   // Use proxy string format
+		LogLevel: "info",
 	}
 
 	// Insert the key to the engine
@@ -61,7 +60,7 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 	// Start the engine in a goroutine
 	go engine.Start()
 
-	fmt.Println("tun2socks core started successfully.")
+	fmt.Printf("tun2socks core started successfully with device: %s, proxy: %s\n", deviceStr, proxyStr)
 }
 
 //export Stop
