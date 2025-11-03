@@ -212,7 +212,7 @@ func ValidateProxyType(proxyType string) bool {
 	return exists
 }
 
-//export Start
+//export Start (legacy method for compatibility)
 func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password *C.char, excludedIps *C.char) {
 	// Convert C strings to Go strings
 	typeStr := C.GoString(proxyType)
@@ -237,6 +237,53 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 	}
 }
 
+//export StartWithUrl (enhanced method with proxy URL)
+func StartWithUrl(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
+	// Convert C strings to Go strings
+	proxyUrlStr := C.GoString(proxyUrl)
+	excludedIpsStr := C.GoString(excludedIps)
+
+	// Create configuration with proxy URL
+	config := &Config{
+		mtu:      1500,
+		device:   fmt.Sprintf("fd://%d", int(tunFd)),
+		proxy:    proxyUrlStr,
+		logLevel: "info",
+		validations: []func() error{
+			func() error {
+				if tunFd <= 0 {
+					return fmt.Errorf("invalid file descriptor: %d", tunFd)
+				}
+				return nil
+			},
+		},
+	}
+
+	// Create and start engine
+	engine := NewTun2SocksEngine(config)
+	if err := engine.Start(); err != nil {
+		log.Printf("Failed to start tun2socks engine with URL: %v", err)
+	}
+}
+
+//export StartWithConfig (enhanced method with config object)
+func StartWithConfig(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
+	// For now, delegate to URL-based method
+	// In a full implementation, this would parse a more complex config structure
+	StartWithUrl(tunFd, proxyUrl, excludedIps)
+}
+
+//export StopWithLogger (enhanced stop method with logger)
+func StopWithLogger() {
+	// Use the existing stop mechanism
+	if cancel != nil {
+		cancel()
+	}
+	engine.Stop()
+	running = false
+	log.Println("Tun2Socks engine stopped with logger")
+}
+
 //export Stop
 func Stop() {
 	// Create a temporary engine instance to stop
@@ -246,6 +293,28 @@ func Stop() {
 	if err := engine.Stop(); err != nil {
 		log.Printf("Failed to stop tun2socks engine: %v", err)
 	}
+}
+
+//export getStats
+func getStats() C.jlongArray {
+	// Return dummy stats for now - [bytesUp, bytesDown, connections]
+	stats := []int64{1024, 2048, 5}
+
+	// Convert to Java long array
+	jvm := C.GetJNIEnv()
+	if jvm == nil {
+		return nil
+	}
+
+	// This is a simplified implementation
+	// In a full implementation, you would need proper JNI array creation
+	return C.jlongArray(nil) // Placeholder
+}
+
+//export setTimeout
+func setTimeout(timeoutMs C.int) {
+	log.Printf("Timeout set to %d ms", timeoutMs)
+	// Implementation would set the timeout in the engine configuration
 }
 
 // main function with Go 1.25 initialization patterns

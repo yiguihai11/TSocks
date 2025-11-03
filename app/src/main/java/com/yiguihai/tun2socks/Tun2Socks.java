@@ -92,19 +92,29 @@ public class Tun2Socks {
     }
 
     /**
+     * Starts the tun2socks core engine (legacy method for compatibility).
+     */
+    public static native void Start(int tunFd, String proxyType, String server, int port, String password, String excludedIps);
+
+    /**
      * Starts the tun2socks core engine with enhanced configuration.
      */
-    public static native void Start(int tunFd, String proxyUrl, String excludedIps, Logger logger, ConnectionListener listener);
+    public static native void StartWithUrl(int tunFd, String proxyUrl, String excludedIps);
 
     /**
      * Starts the tun2socks core engine with proxy config.
      */
-    public static native void Start(int tunFd, ProxyConfig config, Logger logger, ConnectionListener listener);
+    public static native void StartWithConfig(int tunFd, String proxyUrl, String excludedIps);
 
     /**
-     * Stops the tun2socks core engine.
+     * Stops the tun2socks core engine (legacy method).
      */
-    public static native void Stop(Logger logger);
+    public static native void Stop();
+
+    /**
+     * Stops the tun2socks core engine with logger.
+     */
+    public static native void StopWithLogger();
 
     /**
      * Gets connection statistics.
