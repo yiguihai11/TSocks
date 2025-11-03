@@ -13,6 +13,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -56,15 +59,33 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textViewLog = findViewById(R.id.text_view_log);
-        scrollViewLog = findViewById(R.id.scroll_view_log);
-        startVpnButton = findViewById(R.id.button_start_vpn);
-        stopVpnButton = findViewById(R.id.button_stop_vpn);
-        Button advancedSettingsButton = findViewById(R.id.button_advanced_settings);
+        // Update to match Material 3 layout IDs
+        TextView statusText = findViewById(R.id.status_text);
+        TextView statusIndicator = findViewById(R.id.status_indicator);
+        MaterialButton connectButton = findViewById(R.id.connect_button);
+        TextView uploadText = findViewById(R.id.upload_text);
+        TextView downloadText = findViewById(R.id.download_text);
+        TextView connectionsText = findViewById(R.id.connections_text);
+        TextView logsText = findViewById(R.id.logs_text);
+        Button clearLogsButton = findViewById(R.id.clear_logs_button);
+        FloatingActionButton fab = findViewById(R.id.fab);
 
-        startVpnButton.setOnClickListener(v -> prepareAndStartVpn());
-        stopVpnButton.setOnClickListener(v -> stopVpnService());
-        advancedSettingsButton.setOnClickListener(v -> openSettings());
+        // Set up click listeners
+        connectButton.setOnClickListener(v -> {
+            if (isVpnRunning) {
+                stopVpnService();
+            } else {
+                prepareAndStartVpn();
+            }
+        });
+
+        clearLogsButton.setOnClickListener(v -> {
+            if (logsText != null) {
+                logsText.setText("Logs cleared...\n");
+            }
+        });
+
+        fab.setOnClickListener(v -> openSettings());
 
         LocalBroadcastManager.getInstance(this).registerReceiver(logReceiver, new IntentFilter(TSocksVpnService.ACTION_LOG_BROADCAST));
 
@@ -106,7 +127,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void addLog(String message) {
         runOnUiThread(() -> {
-            boolean isAtBottom = (scrollViewLog.getChildAt(0).getBottom() <= (scrollViewLog.getHeight() + scrollViewLog.getScrollY()));
+            TextView logsText = findViewById(R.id.logs_text);
+            if (logsText == null) return;
 
             if (logQueue.size() >= MAX_LOG_LINES) {
                 logQueue.poll();
@@ -117,24 +139,46 @@ public class MainActivity extends AppCompatActivity {
             for (String log : logQueue) {
                 logText.append(log).append("\n");
             }
-            textViewLog.setText(logText.toString());
-
-            if (isAtBottom) {
-                scrollViewLog.post(() -> scrollViewLog.fullScroll(View.FOCUS_DOWN));
-            }
+            logsText.setText(logText.toString());
         });
     }
 
     private void updateUiForVpnStarted() {
-        startVpnButton.setEnabled(false);
-        stopVpnButton.setEnabled(true);
-        ((TextView)findViewById(R.id.text_view_status)).setText("Status: Connected");
+        isVpnRunning = true;
+        // Update Material 3 UI components
+        TextView statusText = findViewById(R.id.status_text);
+        MaterialButton connectButton = findViewById(R.id.connect_button);
+        TextView statusIndicator = findViewById(R.id.status_indicator);
+
+        if (statusText != null) {
+            statusText.setText("Connected");
+            statusText.setTextColor(getResources().getColor(R.color.status_connected, null));
+        }
+        if (connectButton != null) {
+            connectButton.setText("Disconnect");
+        }
+        if (statusIndicator != null) {
+            statusIndicator.setBackgroundColor(getResources().getColor(R.color.status_connected, null));
+        }
     }
 
     private void updateUiForVpnStopped() {
-        startVpnButton.setEnabled(true);
-        stopVpnButton.setEnabled(false);
-        ((TextView)findViewById(R.id.text_view_status)).setText("Status: Disconnected");
+        isVpnRunning = false;
+        // Update Material 3 UI components
+        TextView statusText = findViewById(R.id.status_text);
+        MaterialButton connectButton = findViewById(R.id.connect_button);
+        TextView statusIndicator = findViewById(R.id.status_indicator);
+
+        if (statusText != null) {
+            statusText.setText("Disconnected");
+            statusText.setTextColor(getResources().getColor(R.color.status_disconnected, null));
+        }
+        if (connectButton != null) {
+            connectButton.setText("Connect");
+        }
+        if (statusIndicator != null) {
+            statusIndicator.setBackgroundColor(getResources().getColor(R.color.status_disconnected, null));
+        }
     }
 
     private void showToast(String message) {

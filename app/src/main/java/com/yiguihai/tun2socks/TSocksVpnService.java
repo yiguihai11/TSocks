@@ -41,7 +41,7 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                 String excludedIps = prefs.getString(SettingsActivity.PREF_EXCLUDED_IPS, "");
 
                 // Start the native tun2socks process
-                Tun2Socks.Start(tunFd.getFd(), proxyType, server, port, password, excludedIps, this);
+                Tun2Socks.Start(tunFd.getFd(), proxyType, server, port, password, excludedIps);
 
             } catch (Exception e) {
                 Log.e(TAG, "VPN thread error", e);
@@ -116,7 +116,7 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
 
     private void stopVpn() {
         log("Stopping VPN...");
-        Tun2Socks.Stop(this); // Call JNI to stop the native process
+        Tun2Socks.Stop(); // Call JNI to stop the native process
 
         if (tunFd != null) {
             try {
