@@ -6,7 +6,7 @@ plugins {
 android {
     namespace 'com.yiguihai.tun2socks'
     compileSdk 34
-    ndkVersion "27.2.12479018" // Using latest LTS NDK
+    ndkVersion "27.3.13750724" // Using latest LTS NDK
 
     defaultConfig {
         applicationId "com.yiguihai.tun2socks"
