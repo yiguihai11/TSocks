@@ -65,7 +65,7 @@ abiConfigs.each { config ->
 }
 
 tasks.register("buildGoLibs") {
-    dependsOn abiConfigs.collect { config -> tasks.named("buildGoLib_\${config[0]}") }
+    dependsOn abiConfigs.collect { config -> "buildGoLib_${config[0]}" }
 }
 
 // Hook the Go build into the main Android build process
