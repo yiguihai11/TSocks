@@ -51,14 +51,16 @@ def abiConfigs = [
 
 abiConfigs.each { config ->
     def (abi, goArch, clangArch) = config
-    tasks.register("buildGoLib_\$abi", Exec) {
-        workingDir 'src/main/jni/jnimobile' // We will build from our wrapper directory
-        environment 'CGO_ENABLED', '1'
-        environment 'GOOS', 'android'
-        environment 'GOARCH', goArch
-        environment 'CC', "\$toolchainPath/\${clangArch}\$minApi-clang"
-        // Use -buildmode=c-shared to create a .so file
-        commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "\${project.projectDir}/src/main/jniLibs/\$abi/libtun2socks.so", '.'
+    def taskName = "buildGoLib_\$abi"
+    if (!tasks.findByPath(taskName)) { // Check if task already exists
+        tasks.register(taskName, Exec) {
+            workingDir 'src/main/jni/jnimobile' // We will build from our wrapper directory
+            environment 'CGO_ENABLED', '1'
+            environment 'GOOS', 'android'
+            environment 'GOARCH', goArch
+            environment 'CC', "\$toolchainPath/\${clangArch}\$minApi-clang"
+            commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "\${project.projectDir}/src/main/jniLibs/\$abi/libtun2socks.so", '.'
+        }
     }
 }
 
