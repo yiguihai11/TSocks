@@ -73,10 +73,15 @@ tasks.register("buildGoLibs") {
     dependsOn abiConfigs.collect { config -> "buildGoLib_${config[0]}" }
 }
 
-// Hook the Go build into the main Android build process
-tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('pre') && task.name.endsWith('Build')) {
-        task.dependsOn("buildGoLibs")
+// Hook the Go build into specific Android build tasks
+// More stable approach to avoid dependency mutation issues
+afterEvaluate {
+    // Hook into preBuild task instead of generic pre*Build
+    tasks.matching { it.name == 'preDebugBuild' }.all {
+        it.dependsOn("buildGoLibs")
+    }
+    tasks.matching { it.name == 'preReleaseBuild' }.all {
+        it.dependsOn("buildGoLibs")
     }
 }
 
