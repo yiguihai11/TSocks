@@ -31,9 +31,9 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y wget unzip
-        wget https://dl.google.com/android/repository/android-ndk-r29-linux.zip
-        unzip -q android-ndk-r29-linux.zip
-        echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r29" >> $GITHUB_ENV
+        wget https://dl.google.com/android/repository/android-ndk-r27d-linux.zip
+        unzip -q android-ndk-r27d-linux.zip
+        echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r27d" >> $GITHUB_ENV
 
     - name: Install and initialize gomobile
       run: |
@@ -45,7 +45,7 @@ jobs:
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
         cd jni/tun2socks
-        gomobile bind -v -target=android -androidapi 26 -o ../../app/libs/tun2socks.aar .
+        gomobile bind -v -target=android -androidapi 26 -o ../../app/libs/tun2socks.aar ./mobile
         cd ../../ # Return to project root
 
     - name: Grant execute permission to gradlew
