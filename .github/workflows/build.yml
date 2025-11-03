@@ -41,6 +41,8 @@ jobs:
 
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v5
+      with:
+        gradle-version: 8.4
 
     - name: Build Go native libraries
       run: gradle buildGoLibs

@@ -2,6 +2,7 @@
 // This is intentionally left mostly empty for modern Android projects.
 
 plugins {
-    // Using Android Gradle Plugin version compatible with Gradle 9.2.0
-    id 'com.android.application' version '8.5.0' apply false
+    // Using Android Gradle Plugin version compatible with Gradle 8.4
+    // According to official docs, AGP 8.2.0 requires Gradle 8.0+
+    id 'com.android.application' version '8.2.0' apply false
 }
