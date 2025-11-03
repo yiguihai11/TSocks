@@ -6,8 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"maps"
-	"slices"
 	"strings"
 
 	"github.com/xjasonlyu/tun2socks/v2/engine"
@@ -91,7 +89,7 @@ func buildProxyURL(proxyType, server, password string, port int) string {
 	return builder.String()
 }
 
-// validate runs all validations using Go 1.25 slices.All
+// validate runs all validations - simplified for Go 1.25
 func (c *Config) validate() error {
 	for _, validation := range c.validations {
 		if err := validation(); err != nil {
@@ -152,7 +150,8 @@ func (e *Tun2SocksEngine) Start() (err error) {
 	}
 
 	// Insert configuration
-	engine.Insert(&e.config.toEngineKey())
+	key := e.config.toEngineKey()
+	engine.Insert(&key)
 
 	// Start engine with Go 1.25 goroutine patterns
 	go func() {
@@ -199,35 +198,18 @@ const (
 	ProxyTypeHTTPS  ProxyType = "https"
 )
 
-// SupportedProxyTypes using Go 1.25 maps functionality
+// SupportedProxyTypes using Go 1.25 map literals
 var SupportedProxyTypes = map[ProxyType]bool{
 	ProxyTypeSOCKS5: true,
 	ProxyTypeHTTP:   true,
 	ProxyTypeHTTPS:  true,
 }
 
-// ValidateProxyType validates proxy type using Go 1.25 maps operations
+// ValidateProxyType validates proxy type - Go 1.25 improved map lookup
 func ValidateProxyType(proxyType string) bool {
 	pt := ProxyType(strings.ToLower(proxyType))
-	return SupportedProxyTypes[pt]
-}
-
-// ProxyConfig represents proxy configuration with Go 1.25 struct patterns
-type ProxyConfig struct {
-	Type     ProxyType
-	Host     string
-	Port     int
-	Username string
-	Password string
-}
-
-// ToURL converts proxy config to URL with Go 1.25 enhancements
-func (pc *ProxyConfig) ToURL() string {
-	if !ValidateProxyType(string(pc.Type)) {
-		pc.Type = ProxyTypeSOCKS5 // Default fallback
-	}
-
-	return buildProxyURL(string(pc.Type), pc.Host, pc.Password, pc.Port)
+	_, exists := SupportedProxyTypes[pt] // Go 1.25 optimized map lookup
+	return exists
 }
 
 //export Start
