@@ -1,9 +1,11 @@
 
-package jnimobile
+package main
+
+import "C"
 
 import (
 	"context"
-	"io"
+	"fmt"
 	"os"
 
 	"github.com/xjasonlyu/tun2socks/v2/core"
@@ -11,54 +13,50 @@ import (
 	"github.com/xjasonlyu/tun2socks/v2/proxy"
 )
 
-// Logger is an interface for logging, to be implemented in Java.
-// gomobile bind will generate the corresponding Java interface.
-type Logger interface {
-	Log(message string)
-}
+var cancel context.CancelFunc
 
-var (
-	cancel context.CancelFunc
-	log    Logger
-)
+//export Start
+func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password *C.char, excludedIps *C.char) {
+    // Convert C strings to Go strings
+    proxyTypeGo := C.GoString(proxyType)
+    serverGo := C.GoString(server)
+    passwordGo := C.GoString(password)
+    portGo := int(port)
 
-// Start the tun2socks core.
-func Start(tunFd int, proxyType string, server string, port int, password string, excludedIps string, logger Logger) {
-	log = logger
+    fmt.Printf("Starting with fd: %d, proxy: %s, server: %s:%d\n", tunFd, proxyTypeGo, serverGo, portGo)
 
-	// Use a file descriptor from the TUN device that the VpnService creates.
 	file := os.NewFile(uintptr(tunFd), "")
 
-	// Create a new TUN device.
 	dev, err := tun.NewTUN(file)
 	if err != nil {
-		log.Log("Failed to create TUN device: " + err.Error())
+        fmt.Printf("Failed to create TUN device: %v\n", err)
 		return
 	}
 
-	// Setup the proxy handler.
-	// For now, we only support SOCKS5 as an example.
-	proxy, err := proxy.NewSocks5(server, uint16(port), password)
+    // For now, we only support SOCKS5 as an example.
+    // We will expand this later based on proxyTypeGo
+	proxyHandler, err := proxy.NewSocks5(serverGo, uint16(portGo), passwordGo)
 	if err != nil {
-		log.Log("Failed to create proxy handler: " + err.Error())
+        fmt.Printf("Failed to create proxy handler: %v\n", err)
 		return
 	}
 
-	// Create a context with cancellation.
 	var ctx context.Context
 	ctx, cancel = context.WithCancel(context.Background())
 
-	// Start the core handler.
-	go core.Start(ctx, dev, proxy)
+	go core.Start(ctx, dev, proxyHandler)
 
-	log.Log("tun2socks core started successfully.")
+    fmt.Println("tun2socks core started successfully.")
 }
 
-// Stop the tun2socks core.
+//export Stop
 func Stop() {
 	if cancel != nil {
 		cancel()
 		cancel = nil
-		log.Log("tun2socks core stopped.")
+        fmt.Println("tun2socks core stopped.")
 	}
 }
+
+// This main function is required for CGO to compile a shared library.
+func main() {}

@@ -14,7 +14,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        submodules: 'recursive' # Checkout the tun2socks submodule if it were one
+        submodules: 'recursive'
 
     - name: Set up JDK 11
       uses: actions/setup-java@v4
@@ -34,27 +34,12 @@ jobs:
         wget https://dl.google.com/android/repository/android-ndk-r27d-linux.zip
         unzip -q android-ndk-r27d-linux.zip
         echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r27d" >> $GITHUB_ENV
-
-    - name: Install and initialize gomobile
-      run: |
-        go install golang.org/x/mobile/cmd/gomobile@latest
-        go install golang.org/x/mobile/cmd/gobind@latest
-        export PATH=$PATH:$(go env GOPATH)/bin
-        gomobile init
-
-    - name: Generate tun2socks.aar library
-      run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
-        cd jni/jnimobile
-        go mod download
-        go mod tidy
-        gomobile bind -v -target=android -androidapi 26 -o ../../app/libs/tun2socks.aar .
-        cd ../../ # Return to project root
+        echo "ndk.dir=$GITHUB_WORKSPACE/android-ndk-r27d" > local.properties
 
     - name: Grant execute permission to gradlew
-      run: chmod +x gradlew
 
     - name: Build with Gradle
+      # The buildGoLibs task is automatically triggered by the Android build process
       run: ./gradlew assembleDebug
 
     - name: Upload APK artifact

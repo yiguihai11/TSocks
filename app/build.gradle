@@ -6,6 +6,7 @@ plugins {
 android {
     namespace 'com.yiguihai.tun2socks'
     compileSdk 34
+    ndkVersion "27.2.12479018" // Using latest LTS NDK
 
     defaultConfig {
         applicationId "com.yiguihai.tun2socks"
@@ -13,8 +14,12 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
+    }
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
     }
 
     buildTypes {
@@ -27,13 +32,49 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    ndkVersion "27.3.13750724"
+}
+
+// Define Go build tasks
+
+def ndkDir = android.ndkDirectory.absolutePath
+def osName = System.getProperty("os.name").toLowerCase()
+def toolchainDir = osName.contains("windows") ? "windows-x86_64" : "linux-x86_64"
+def toolchainPath = "\$ndkDir/toolchains/llvm/prebuilt/\${toolchainDir}/bin"
+def minApi = android.defaultConfig.minSdk
+
+def abiConfigs = [
+    ["armeabi-v7a", "arm", "armv7a-linux-androideabi"],
+    ["arm64-v8a", "arm64", "aarch64-linux-android"],
+    ["x86", "386", "i686-linux-android"],
+    ["x86_64", "amd64", "x86_64-linux-android"]
+]
+
+abiConfigs.each { config ->
+    def (abi, goArch, clangArch) = config
+    tasks.register("buildGoLib_\$abi", Exec) {
+        workingDir 'src/main/jni/jnimobile' // We will build from our wrapper directory
+        environment 'CGO_ENABLED', '1'
+        environment 'GOOS', 'android'
+        environment 'GOARCH', goArch
+        environment 'CC', "\$toolchainPath/\${clangArch}\$minApi-clang"
+        // Use -buildmode=c-shared to create a .so file
+        commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "\${project.projectDir}/src/main/jniLibs/\$abi/libtun2socks.so", '.'
+    }
+}
+
+tasks.register("buildGoLibs") {
+    dependsOn abiConfigs.collect { config -> tasks.named("buildGoLib_\${config[0]}") }
+}
+
+// Hook the Go build into the main Android build process
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('pre') && task.name.endsWith('Build')) {
+        task.dependsOn("buildGoLibs")
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    // The .aar file for tun2socks will be placed in the libs directory
-    implementation files('libs/tun2socks.aar')
 }
