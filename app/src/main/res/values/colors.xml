@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Material 3 Light Theme Colors -->
     <color name="md_theme_light_primary">#0061a4</color>
     <color name="md_theme_light_onPrimary">#ffffff</color>
     <color name="md_theme_light_primaryContainer">#d1e4ff</color>
@@ -8,4 +9,31 @@
     <color name="md_theme_light_onSecondary">#ffffff</color>
     <color name="md_theme_light_secondaryContainer">#d7e3f7</color>
     <color name="md_theme_light_onSecondaryContainer">#101c2b</color>
+    <color name="md_theme_light_tertiary">#6b5778</color>
+    <color name="md_theme_light_onTertiary">#ffffff</color>
+    <color name="md_theme_light_tertiaryContainer">#f2daff</color>
+    <color name="md_theme_light_onTertiaryContainer">#251431</color>
+    <color name="md_theme_light_error">#ba1a1a</color>
+    <color name="md_theme_light_onError">#ffffff</color>
+    <color name="md_theme_light_errorContainer">#ffdad6</color>
+    <color name="md_theme_light_onErrorContainer">#410002</color>
+    <color name="md_theme_light_background">#fffbfe</color>
+    <color name="md_theme_light_onBackground">#1a1b1e</color>
+    <color name="md_theme_light_surface">#fffbfe</color>
+    <color name="md_theme_light_onSurface">#1a1b1e</color>
+    <color name="md_theme_light_surfaceVariant">#dfe2eb</color>
+    <color name="md_theme_light_onSurfaceVariant">#43474e</color>
+    <color name="md_theme_light_outline">#73777f</color>
+    <color name="md_theme_light_outlineVariant">#c3c7cf</color>
+    <color name="md_theme_light_scrim">#000000</color>
+    <color name="md_theme_light_inverseSurface">#2f3033</color>
+    <color name="md_theme_light_inverseOnSurface">#f1f0f4</color>
+    <color name="md_theme_light_inversePrimary">#a0cafd</color>
+    <color name="md_theme_light_surfaceDim">#dadbdd</color>
+    <color name="md_theme_light_surfaceBright">#fffbfe</color>
+    <color name="md_theme_light_surfaceContainerLowest">#ffffff</color>
+    <color name="md_theme_light_surfaceContainerLow">#f5f5f8</color>
+    <color name="md_theme_light_surfaceContainer">#efeff2</color>
+    <color name="md_theme_light_surfaceContainerHigh">#e9e9ec</color>
+    <color name="md_theme_light_surfaceContainerHighest">#e3e3e6</color>
 </resources>
