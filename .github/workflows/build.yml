@@ -39,9 +39,11 @@ jobs:
     - name: Grant execute permission to gradlew
       run: chmod +x gradlew
 
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v3
+
     - name: Build with Gradle
-      # The buildGoLibs task is automatically triggered by the Android build process
-      run: ./gradlew assembleDebug
+      run: gradle assembleDebug
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
