@@ -259,6 +259,11 @@ func StartWithUrl(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
 		},
 	}
 
+	// Log excluded IPs if provided
+	if excludedIpsStr != "" {
+		log.Printf("Excluded IPs: %s", excludedIpsStr)
+	}
+
 	// Create and start engine
 	engine := NewTun2SocksEngine(config)
 	if err := engine.Start(); err != nil {
