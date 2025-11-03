@@ -26,6 +26,10 @@ import java.util.Queue;
 
 public class MainActivity extends AppCompatActivity {
 
+    // UI state
+    private boolean isVpnRunning = false;
+
+    // Legacy UI references (kept for compatibility)
     private TextView textViewLog;
     private ScrollView scrollViewLog;
     private Button startVpnButton;
