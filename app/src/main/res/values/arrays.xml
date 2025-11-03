@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Proxy Protocol Options -->
+    <string-array name="proxy_protocols">
+        <item>SOCKS5</item>
+        <item>SOCKS4</item>
+        <item>HTTP</item>
+        <item>Shadowsocks</item>
+        <item>Relay</item>
+        <item>Direct</item>
+        <item>Reject</item>
+    </string-array>
+
+    <!-- Predefined Server Ports -->
+    <string-array name="common_ports">
+        <item>1080</item>
+        <item>8080</item>
+        <item>3128</item>
+        <item>8888</item>
+        <item>7890</item>
+        <item>9999</item>
+        <item>80</item>
+        <item>443</item>
+    </string-array>
+
+    <!-- Connection Timeout Options -->
+    <string-array name="timeout_options">
+        <item>1s</item>
+        <item>5s</item>
+        <item>10s</item>
+        <item>30s</item>
+        <item>60s</item>
+    </string-array>
+
+    <!-- Log Levels -->
+    <string-array name="log_levels">
+        <item>Verbose</item>
+        <item>Debug</item>
+        <item>Info</item>
+        <item>Warning</item>
+        <item>Error</item>
+    </string-array>
+</resources>

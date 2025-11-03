@@ -1,4 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App Name -->
     <string name="app_name">TSocks</string>
+    <string name="app_description">Modern VPN client with multiple protocol support</string>
+
+    <!-- Main Activity -->
+    <string name="connection_status">Connection Status</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="connecting">Connecting...</string>
+    <string name="connected">Connected</string>
+    <string name="error">Error</string>
+
+    <!-- Statistics -->
+    <string name="bytes_up">Bytes Up</string>
+    <string name="bytes_down">Bytes Down</string>
+    <string name="connections">Connections</string>
+
+    <!-- Actions -->
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="settings">Settings</string>
+    <string name="apps">Apps</string>
+    <string name="clear_logs">Clear</string>
+    <string name="save">Save Configuration</string>
+
+    <!-- Configuration -->
+    <string name="current_configuration">Current Configuration</string>
+    <string name="protocol">Protocol</string>
+    <string name="server">Server</string>
+    <string name="not_configured">Not configured</string>
+
+    <!-- Logs -->
+    <string name="logs">Logs</string>
+    <string name="no_logs_yet">No logs yet...</string>
+
+    <!-- Settings -->
+    <string name="proxy_configuration">Proxy Configuration</string>
+    <string name="protocol_hint">Protocol</string>
+    <string name="server_hint">Server Address</string>
+    <string name="port_hint">Port</string>
+    <string name="username_hint">Username</string>
+    <string="password_hint">Password</string>
+    <string name="excluded_ips_hint">Excluded IPs</string>
+
+    <!-- Advanced Options -->
+    <string name="advanced_options">Advanced Options</string>
+    <string name="connection_timeout">Connection Timeout</string>
+    <string name="timeout_5000ms">5000ms</string>
+
+    <!-- Quick Settings -->
+    <string name="quick_settings">Quick Settings</string>
+    <string name="auto_connect">Auto Connect on Startup</string>
+    <string name="system_proxy">Set System Proxy</string>
+    <string name="show_notification">Show Notification</string>
+
+    <!-- Protocols -->
+    <string name="protocol_socks5">SOCKS5</string>
+    <string name="protocol_socks4">SOCKS4</string>
+    <string name="protocol_http">HTTP</string>
+    <string name="protocol_shadowsocks">Shadowsocks</string>
+    <string name="protocol_relay">Relay</string>
+    <string name="protocol_direct">Direct</string>
+    <string name="protocol_reject">Reject</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">VPN Status</string>
+    <string name="notification_channel_description">Shows current VPN connection status</string>
+    <string name="notification_connected">TSocks Connected</string>
+    <string name="notification_disconnected">TSocks Disconnected</string>
+    <string name="notification_tap_to_disconnect">Tap to disconnect</string>
+
+    <!-- About -->
+    <string name="about">About</string>
+    <string name="about_text">TSocks - Modern VPN Client\nVersion 1.0\n\nSupports multiple proxy protocols:\n• SOCKS5/4\n• HTTP Proxy\n• Shadowsocks\n• Relay\n\nBuilt with Go 1.25.3 and Material 3</string>
+    <string name="help">Help</string>
+
+    <!-- Import/Export -->
+    <string name="export_config">Export Config</string>
+    <string name="import_config">Import Config</string>
+    <string name="config_exported">Configuration exported successfully</string>
+    <string name="config_imported">Configuration imported successfully</string>
+    <string name="config_export_failed">Failed to export configuration</string>
+    <string name="config_import_failed">Failed to import configuration</string>
+
+    <!-- Status Messages -->
+    <string name="status_initializing">Initializing VPN...</string>
+    <string name="status_starting">Starting tun2socks...</string>
+    <string name="status_running">tun2socks is running</string>
+    <string name="status_stopping">Stopping tun2socks...</string>
+    <string name="status_stopped">tun2socks stopped</string>
+    <string name="status_error">VPN Error</string>
+
+    <!-- Error Messages -->
+    <string name="error_no_config">Please configure proxy settings first</string>
+    <string name="error_invalid_server">Invalid server address</string>
+    <string name="error_invalid_port">Invalid port number</string>
+    <string name="error_connection_failed">Failed to connect to proxy server</string>
+    <string name="error_vpn_permission">VPN permission denied</string>
+
+    <!-- Format strings -->
+    <string name="format_bytes_uploaded">Uploaded: %s</string>
+    <string name="format_bytes_downloaded">Downloaded: %s</string>
+    <string name="format_active_connections">Active: %d</string>
+    <string name="format_server_config">%s:%d</string>
 </resources>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme colors -->
+    <color name="md_theme_light_primary">#0061a4</color>
+    <color name="md_theme_light_onPrimary">#ffffff</color>
+    <color name="md_theme_light_primaryContainer">#004a8c</color>
+    <color name="md_theme_light_onPrimaryContainer">#cae6ff</color>
+
+    <color name="md_theme_light_secondary">#4f5b6e</color>
+    <color name="md_theme_light_onSecondary">#ffffff</color>
+    <color name="md_theme_light_secondaryContainer">#667382</color>
+    <color name="md_theme_light_onSecondaryContainer">#e1e2f4</color>
+
+    <color name="md_theme_dark_primary">#cae6ff</color>
+    <color name="md_theme_dark_onPrimary">#003063</color>
+    <color name="md_theme_dark_primaryContainer">#004a8c</color>
+    <color name="md_theme_dark_onPrimaryContainer">#cae6ff</color>
+
+    <color name="md_theme_dark_secondary">#e1e2f4</color>
+    <color name="md_theme_dark_onSecondary">#1b2936</color>
+    <color name="md_theme_dark_secondaryContainer">#667382</color>
+    <color name="md_theme_dark_onSecondaryContainer">#e1e2f4</color>
+
+    <!-- Status colors -->
+    <color name="status_connected">#4CAF50</color>
+    <color name="status_connecting">#FF9800</color>
+    <color name="status_disconnected">#F44336</color>
+
+    <!-- Background colors -->
+    <color name="background_surface">#121212</color>
+    <color name="background_surface_variant">#1E1E1E</color>
+
+    <!-- Outline colors -->
+    <color name="outline">#404040</color>
+    <color name="outline_variant">#2C2C2C</color>
+</resources>
