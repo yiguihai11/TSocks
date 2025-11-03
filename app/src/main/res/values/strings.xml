@@ -40,7 +40,7 @@
     <string name="server_hint">Server Address</string>
     <string name="port_hint">Port</string>
     <string name="username_hint">Username</string>
-    <string="password_hint">Password</string>
+    <string name="password_hint">Password</string>
     <string name="excluded_ips_hint">Excluded IPs</string>
 
     <!-- Advanced Options -->
