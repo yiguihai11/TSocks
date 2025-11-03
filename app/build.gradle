@@ -54,7 +54,7 @@ abiConfigs.each { config ->
     def taskName = "buildGoLib_${abi}"
     if (!tasks.findByPath(taskName)) { // Check if task already exists
         tasks.register(taskName, Exec) {
-            workingDir "${projectDir}/jni/tun2socks" // Use app/jni/tun2socks directory
+            workingDir "${projectDir}/jni" // Use app/jni directory (contains our go.mod)
             doFirst {
                 // Ensure output directory exists
                 file("${project.projectDir}/src/main/jniLibs/${abi}").mkdirs()
@@ -63,8 +63,8 @@ abiConfigs.each { config ->
             environment 'GOOS', 'android'
             environment 'GOARCH', goArch
             environment 'CC', "${toolchainPath}/${clangArch}${minApi}-clang"
-            // Build the official tun2socks with Android-specific exports
-            commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so", '.'
+            // Build our JNI wrapper that imports tun2socks
+            commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so", 'tun2socks_android.go'
         }
     }
 }
