@@ -2,6 +2,6 @@
 // This is intentionally left mostly empty for modern Android projects.
 
 plugins {
-    // Using a recent, stable version of the Android Gradle Plugin
-    id 'com.android.application' version '8.2.0' apply false
+    // Using Android Gradle Plugin version compatible with Gradle 9.2.0
+    id 'com.android.application' version '8.5.0' apply false
 }
