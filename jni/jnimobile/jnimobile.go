@@ -8,7 +8,7 @@ import (
 
 	"github.com/xjasonlyu/tun2socks/v2/core"
 	"github.com/xjasonlyu/tun2socks/v2/core/device/tun"
-	"github.com/xjasonlyu/tun2socks/v2/proxy/socks"
+	"github.com/xjasonlyu/tun2socks/v2/proxy"
 )
 
 // Logger is an interface for logging, to be implemented in Java.
@@ -38,7 +38,7 @@ func Start(tunFd int, proxyType string, server string, port int, password string
 
 	// Setup the proxy handler.
 	// For now, we only support SOCKS5 as an example.
-	proxy, err := socks.New(server, uint16(port), password)
+	proxy, err := proxy.NewSocks5(server, uint16(port), password)
 	if err != nil {
 		log.Log("Failed to create proxy handler: " + err.Error())
 		return
