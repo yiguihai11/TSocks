@@ -38,6 +38,7 @@ jobs:
     - name: Install and initialize gomobile
       run: |
         go install golang.org/x/mobile/cmd/gomobile@latest
+        go install golang.org/x/mobile/cmd/gobind@latest
         export PATH=$PATH:$(go env GOPATH)/bin
         gomobile init
 
@@ -45,7 +46,7 @@ jobs:
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
         cd jni/jnimobile
-        go get golang.org/x/mobile/bind
+        go mod download
         go mod tidy
         gomobile bind -v -target=android -androidapi 26 -o ../../app/libs/tun2socks.aar .
         cd ../../ # Return to project root
