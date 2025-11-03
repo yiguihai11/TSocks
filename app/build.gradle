@@ -73,17 +73,8 @@ tasks.register("buildGoLibs") {
     dependsOn abiConfigs.collect { config -> "buildGoLib_${config[0]}" }
 }
 
-// Hook the Go build into specific Android build tasks
-// More stable approach to avoid dependency mutation issues
-afterEvaluate {
-    // Hook into preBuild task instead of generic pre*Build
-    tasks.matching { it.name == 'preDebugBuild' }.all {
-        it.dependsOn("buildGoLibs")
-    }
-    tasks.matching { it.name == 'preReleaseBuild' }.all {
-        it.dependsOn("buildGoLibs")
-    }
-}
+// Note: Go libraries need to be built manually before Android build
+// Run: gradle buildGoLibs assembleDebug
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
