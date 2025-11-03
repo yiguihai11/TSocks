@@ -58,6 +58,11 @@ abiConfigs.each { config ->
             doFirst {
                 // Ensure output directory exists
                 file("${project.projectDir}/src/main/jniLibs/${abi}").mkdirs()
+                // Download Go dependencies if needed
+                exec {
+                    commandLine 'go', 'mod', 'download'
+                    ignoreExitValue = true
+                }
             }
             environment 'CGO_ENABLED', '1'
             environment 'GOOS', 'android'
