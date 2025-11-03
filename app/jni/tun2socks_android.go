@@ -296,9 +296,9 @@ func Stop() {
 }
 
 //export getStats
-func getStats() C.jlong {
+func getStats() C.long {
 	// Return a single stat for now - bytes uploaded
-	// In a full implementation, you would create and return a Java long array
+	// Using C.long which is a standard CGo type
 	return 1024
 }
 
