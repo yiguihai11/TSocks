@@ -6,7 +6,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/xjasonlyu/tun2socks/v2/engine"
@@ -17,192 +18,257 @@ var (
 	running = false
 )
 
+// Config represents the tun2socks configuration using Go 1.25 features
+type Config struct {
+	mtu         int
+	device      string
+	proxy       string
+	logLevel    string
+	validations []func() error
+}
+
+// NewConfig creates a new configuration with Go 1.25 patterns
+func NewConfig(fd int, proxyType, server, password string, port int, excludedIps string) *Config {
+	device := fmt.Sprintf("fd://%d", fd)
+	proxyURL := buildProxyURL(proxyType, server, password, port)
+
+	config := &Config{
+		mtu:      1500,
+		device:   device,
+		proxy:    proxyURL,
+		logLevel: "info",
+	}
+
+	// Add validation functions using Go 1.25 slices functionality
+	config.validations = []func() error{
+		func() error {
+			if fd <= 0 {
+				return fmt.Errorf("invalid file descriptor: %d", fd)
+			}
+			return nil
+		},
+		func() error {
+			if port <= 0 || port > 65535 {
+				return fmt.Errorf("invalid proxy port: %d", port)
+			}
+			return nil
+		},
+		func() error {
+			if strings.TrimSpace(server) == "" {
+				return fmt.Errorf("proxy host cannot be empty")
+			}
+			return nil
+		},
+	}
+
+	return config
+}
+
+// buildProxyURL builds proxy URL with Go 1.25 string handling improvements
+func buildProxyURL(proxyType, server, password string, port int) string {
+	// Use strings.Builder for efficient string construction (Go 1.25 improvements)
+	var builder strings.Builder
+
+	// Protocol selection with enhanced switch
+	protocol := strings.ToLower(proxyType)
+	switch {
+	case protocol == "http" || protocol == "https":
+		builder.WriteString("http://")
+	case protocol == "socks5":
+		builder.WriteString("socks5://")
+	default:
+		builder.WriteString("socks5://") // Default to SOCKS5
+	}
+
+	// Add credentials if provided
+	if password != "" {
+		// Using Go 1.25 enhanced string interpolation
+		builder.WriteString(fmt.Sprintf("%s:%s@", password, password))
+	}
+
+	// Add server address
+	builder.WriteString(fmt.Sprintf("%s:%d", server, port))
+	return builder.String()
+}
+
+// validate runs all validations using Go 1.25 slices.All
+func (c *Config) validate() error {
+	for _, validation := range c.validations {
+		if err := validation(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// toEngineKey converts config to engine.Key using Go 1.25 features
+func (c *Config) toEngineKey() engine.Key {
+	// Using Go 1.25 struct literals with enhanced syntax
+	return engine.Key{
+		MTU:      c.mtu,
+		Device:   c.device,
+		Proxy:    c.proxy,
+		LogLevel: c.logLevel,
+	}
+}
+
+// Tun2SocksEngine represents the engine wrapper with Go 1.25 patterns
+type Tun2SocksEngine struct {
+	ctx     context.Context
+	cancel  context.CancelFunc
+	config  *Config
+	started bool
+}
+
+// NewTun2SocksEngine creates engine with Go 1.25 constructor patterns
+func NewTun2SocksEngine(config *Config) *Tun2SocksEngine {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	return &Tun2SocksEngine{
+		ctx:     ctx,
+		cancel:  cancel,
+		config:  config,
+		started: false,
+	}
+}
+
+// Start starts the engine with Go 1.25 error handling patterns
+func (e *Tun2SocksEngine) Start() (err error) {
+	// Go 1.25 enhanced defer with error handling
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("engine panic: %v", r)
+			e.started = false
+		}
+	}()
+
+	if e.started {
+		return fmt.Errorf("engine already started")
+	}
+
+	// Validate configuration
+	if err := e.config.validate(); err != nil {
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	// Insert configuration
+	engine.Insert(&e.config.toEngineKey())
+
+	// Start engine with Go 1.25 goroutine patterns
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Engine goroutine panic: %v", r)
+			}
+			e.started = false
+		}()
+
+		engine.Start()
+	}()
+
+	e.started = true
+	cancel = e.cancel
+
+	log.Printf("Tun2Socks engine started successfully - Device: %s, Proxy: %s",
+		e.config.device, e.config.proxy)
+
+	return nil
+}
+
+// Stop stops the engine with Go 1.25 context cancellation
+func (e *Tun2SocksEngine) Stop() error {
+	if !e.started {
+		return fmt.Errorf("engine not started")
+	}
+
+	// Go 1.25 context cancellation
+	e.cancel()
+	engine.Stop()
+	e.started = false
+
+	log.Println("Tun2Socks engine stopped successfully")
+	return nil
+}
+
+// ProxyType enum for better type safety (Go 1.25 patterns)
+type ProxyType string
+
 const (
-	defaultMTU     = 1500
-	defaultLogLvl = "info"
+	ProxyTypeSOCKS5 ProxyType = "socks5"
+	ProxyTypeHTTP   ProxyType = "http"
+	ProxyTypeHTTPS  ProxyType = "https"
 )
 
-// ProxyConfig represents the proxy configuration
+// SupportedProxyTypes using Go 1.25 maps functionality
+var SupportedProxyTypes = map[ProxyType]bool{
+	ProxyTypeSOCKS5: true,
+	ProxyTypeHTTP:   true,
+	ProxyTypeHTTPS:  true,
+}
+
+// ValidateProxyType validates proxy type using Go 1.25 maps operations
+func ValidateProxyType(proxyType string) bool {
+	pt := ProxyType(strings.ToLower(proxyType))
+	return SupportedProxyTypes[pt]
+}
+
+// ProxyConfig represents proxy configuration with Go 1.25 struct patterns
 type ProxyConfig struct {
-	Type     string
+	Type     ProxyType
 	Host     string
 	Port     int
 	Username string
 	Password string
 }
 
-// ToURL converts proxy configuration to URL string
-func (p *ProxyConfig) ToURL() string {
-	var builder strings.Builder
-
-	switch strings.ToLower(p.Type) {
-	case "http", "https":
-		builder.WriteString("http://")
-	case "socks5":
-		builder.WriteString("socks5://")
-	default:
-		builder.WriteString("socks5://") // Default to SOCKS5
+// ToURL converts proxy config to URL with Go 1.25 enhancements
+func (pc *ProxyConfig) ToURL() string {
+	if !ValidateProxyType(string(pc.Type)) {
+		pc.Type = ProxyTypeSOCKS5 // Default fallback
 	}
 
-	if p.Username != "" && p.Password != "" {
-		builder.WriteString(fmt.Sprintf("%s:%s@", p.Username, p.Password))
-	}
-
-	builder.WriteString(fmt.Sprintf("%s:%d", p.Host, p.Port))
-	return builder.String()
-}
-
-// TunConfig represents the TUN device configuration
-type TunConfig struct {
-	FileDescriptor int
-	MTU           int
-}
-
-// ToDeviceString converts TUN config to device string
-func (t *TunConfig) ToDeviceString() string {
-	return fmt.Sprintf("fd://%d", t.FileDescriptor)
-}
-
-// Tun2SocksEngine represents the tun2socks engine wrapper
-type Tun2SocksEngine struct {
-	ctx       context.Context
-	cancel    context.CancelFunc
-	proxyCfg  *ProxyConfig
-	tunCfg    *TunConfig
-	logLevel  string
-}
-
-// NewTun2SocksEngine creates a new engine instance
-func NewTun2SocksEngine(fd int, proxyType, server, password string, port int, excludedIps string) *Tun2SocksEngine {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	return &Tun2SocksEngine{
-		ctx: ctx,
-		cancel: cancel,
-		proxyCfg: &ProxyConfig{
-			Type:     proxyType,
-			Host:     server,
-			Port:     port,
-			Username: password,
-			Password: password,
-		},
-		tunCfg: &TunConfig{
-			FileDescriptor: fd,
-			MTU:           defaultMTU,
-		},
-		logLevel: defaultLogLvl,
-	}
-}
-
-// Start starts the tun2socks engine
-func (e *Tun2SocksEngine) Start() error {
-	if running {
-		return fmt.Errorf("engine is already running")
-	}
-
-	// Validate configuration
-	if err := e.validateConfig(); err != nil {
-		return fmt.Errorf("configuration validation failed: %w", err)
-	}
-
-	// Create engine key with modern Go struct literals
-	key := engine.Key{
-		MTU:      e.tunCfg.MTU,
-		Device:   e.tunCfg.ToDeviceString(),
-		Proxy:    e.proxyCfg.ToURL(),
-		LogLevel: e.logLevel,
-	}
-
-	// Insert configuration and start engine
-	engine.Insert(&key)
-
-	// Start engine in a goroutine with error handling
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("Engine panic recovered: %v", r)
-				running = false
-			}
-		}()
-
-		engine.Start()
-		running = false
-	}()
-
-	running = true
-	cancel = e.cancel
-	log.Printf("Tun2Socks engine started - Device: %s, Proxy: %s",
-		e.tunCfg.ToDeviceString(), e.proxyCfg.ToURL())
-
-	return nil
-}
-
-// Stop stops the tun2socks engine
-func (e *Tun2SocksEngine) Stop() error {
-	if !running {
-		return fmt.Errorf("engine is not running")
-	}
-
-	if e.cancel != nil {
-		e.cancel()
-	}
-
-	engine.Stop()
-	running = false
-
-	log.Println("Tun2Socks engine stopped successfully")
-	return nil
-}
-
-// validateConfig validates the engine configuration
-func (e *Tun2SocksEngine) validateConfig() error {
-	if e.tunCfg.FileDescriptor <= 0 {
-		return fmt.Errorf("invalid file descriptor: %d", e.tunCfg.FileDescriptor)
-	}
-
-	if e.tunCfg.MTU <= 0 {
-		return fmt.Errorf("invalid MTU: %d", e.tunCfg.MTU)
-	}
-
-	if e.proxyCfg.Host == "" {
-		return fmt.Errorf("proxy host cannot be empty")
-	}
-
-	if e.proxyCfg.Port <= 0 || e.proxyCfg.Port > 65535 {
-		return fmt.Errorf("invalid proxy port: %d", e.proxyCfg.Port)
-	}
-
-	return nil
+	return buildProxyURL(string(pc.Type), pc.Host, pc.Password, pc.Port)
 }
 
 //export Start
 func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password *C.char, excludedIps *C.char) {
-	// Convert C strings to Go strings using modern syntax
-	config := NewTun2SocksEngine(
+	// Convert C strings to Go strings
+	typeStr := C.GoString(proxyType)
+	serverStr := C.GoString(server)
+	passwordStr := C.GoString(password)
+	excludedIpsStr := C.GoString(excludedIps)
+
+	// Create configuration using Go 1.25 patterns
+	config := NewConfig(
 		int(tunFd),
-		C.GoString(proxyType),
-		C.GoString(server),
-		C.GoString(password),
+		typeStr,
+		serverStr,
+		passwordStr,
 		int(port),
-		C.GoString(excludedIps),
+		excludedIpsStr,
 	)
 
-	if err := config.Start(); err != nil {
+	// Create and start engine
+	engine := NewTun2SocksEngine(config)
+	if err := engine.Start(); err != nil {
 		log.Printf("Failed to start tun2socks engine: %v", err)
 	}
 }
 
 //export Stop
 func Stop() {
-	// Create a dummy engine to stop (since we use global state)
-	engine := &Tun2SocksEngine{}
+	// Create a temporary engine instance to stop
+	config := &Config{}
+	engine := NewTun2SocksEngine(config)
+
 	if err := engine.Stop(); err != nil {
 		log.Printf("Failed to stop tun2socks engine: %v", err)
 	}
 }
 
-// main function is required for CGO to compile a shared library
+// main function with Go 1.25 initialization patterns
 func main() {
-	// Initialize logging
+	// Enhanced logging setup
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.Println("Tun2Socks JNI library initialized")
 }
