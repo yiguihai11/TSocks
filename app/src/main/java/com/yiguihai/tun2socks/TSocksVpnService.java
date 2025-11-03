@@ -9,6 +9,8 @@ import android.util.Log;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
 
