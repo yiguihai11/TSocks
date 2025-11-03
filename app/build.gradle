@@ -39,7 +39,7 @@ android {
 def ndkDir = android.ndkDirectory.absolutePath
 def osName = System.getProperty("os.name").toLowerCase()
 def toolchainDir = osName.contains("windows") ? "windows-x86_64" : "linux-x86_64"
-def toolchainPath = "\$ndkDir/toolchains/llvm/prebuilt/\${toolchainDir}/bin"
+def toolchainPath = "${ndkDir}/toolchains/llvm/prebuilt/${toolchainDir}/bin"
 def minApi = android.defaultConfig.minSdk
 
 def abiConfigs = [
