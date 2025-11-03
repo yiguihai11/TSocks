@@ -54,7 +54,11 @@ abiConfigs.each { config ->
     def taskName = "buildGoLib_${abi}"
     if (!tasks.findByPath(taskName)) { // Check if task already exists
         tasks.register(taskName, Exec) {
-            workingDir 'src/main/jni/jnimobile' // We will build from our wrapper directory
+            workingDir '../../jni/jnimobile' // Go source code is in project root jni/jnimobile
+            doFirst {
+                // Ensure output directory exists
+                file("${project.projectDir}/src/main/jniLibs/${abi}").mkdirs()
+            }
             environment 'CGO_ENABLED', '1'
             environment 'GOOS', 'android'
             environment 'GOARCH', goArch
