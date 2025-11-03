@@ -37,6 +37,7 @@ jobs:
         echo "ndk.dir=$GITHUB_WORKSPACE/android-ndk-r27d" > local.properties
 
     - name: Grant execute permission to gradlew
+      run: chmod +x gradlew
 
     - name: Build with Gradle
       # The buildGoLibs task is automatically triggered by the Android build process
