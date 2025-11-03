@@ -6,9 +6,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
-	"github.com/xjasonlyu/tun2socks/v2/core"
 	"github.com/xjasonlyu/tun2socks/v2/core/device/fdbased"
+	"github.com/xjasonlyu/tun2socks/v2/engine"
 	"github.com/xjasonlyu/tun2socks/v2/proxy"
 )
 
@@ -26,6 +27,9 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 
 	fdStr := strconv.Itoa(int(tunFd))
 
+	// Create server address with port
+	serverAddr := fmt.Sprintf("%s:%d", serverGo, portGo)
+
 	// Use the FD-based device model, which is perfect for Android VpnService
 	dev, err := fdbased.Open(fdStr, 1500, 0)
 	if err != nil {
@@ -35,7 +39,7 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 
 	// For now, we only support SOCKS5 as an example.
 	// We will expand this later based on proxyTypeGo
-	proxyHandler, err := proxy.NewSocks5(serverGo, uint16(portGo), passwordGo)
+	proxyHandler, err := proxy.NewSocks5(serverAddr, passwordGo, "")
 	if err != nil {
 		fmt.Printf("Failed to create proxy handler: %v\n", err)
 		return
@@ -44,7 +48,18 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 	var ctx context.Context
 	ctx, cancel = context.WithCancel(context.Background())
 
-	go core.Start(ctx, dev, proxyHandler)
+	// Create engine key with the required configurations
+	key := &engine.Key{
+		Device: dev,
+		Proxy:  proxyHandler,
+		// Add other necessary configurations
+	}
+
+	// Insert the key to the engine
+	engine.Insert(key)
+
+	// Start the engine in a goroutine
+	go engine.Start()
 
 	fmt.Println("tun2socks core started successfully.")
 }
@@ -54,8 +69,11 @@ func Stop() {
 	if cancel != nil {
 		cancel()
 		cancel = nil
-		fmt.Println("tun2socks core stopped.")
 	}
+
+	// Stop the engine
+	engine.Stop()
+	fmt.Println("tun2socks core stopped.")
 }
 
 // This main function is required for CGO to compile a shared library.
