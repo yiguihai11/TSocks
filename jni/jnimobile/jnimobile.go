@@ -7,9 +7,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+    "strconv"
 
 	"github.com/xjasonlyu/tun2socks/v2/core"
-	"github.com/xjasonlyu/tun2socks/v2/core/device/tun"
+	"github.com/xjasonlyu/tun2socks/v2/core/device/fdbased"
 	"github.com/xjasonlyu/tun2socks/v2/proxy"
 )
 
@@ -25,11 +26,12 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 
     fmt.Printf("Starting with fd: %d, proxy: %s, server: %s:%d\n", tunFd, proxyTypeGo, serverGo, portGo)
 
-	file := os.NewFile(uintptr(tunFd), "")
+	fdStr := strconv.Itoa(int(tunFd))
 
-	dev, err := tun.NewTUN(file)
+	// Use the FD-based device model, which is perfect for Android VpnService
+	dev, err := fdbased.Open(fdStr, 1500, 0)
 	if err != nil {
-        fmt.Printf("Failed to create TUN device: %v\n", err)
+        fmt.Printf("Failed to create FD-based device: %v\n", err)
 		return
 	}
 
