@@ -63,8 +63,8 @@ abiConfigs.each { config ->
             environment 'GOOS', 'android'
             environment 'GOARCH', goArch
             environment 'CC', "${toolchainPath}/${clangArch}${minApi}-clang"
-            // Download dependencies first, then build
-            commandLine 'sh', '-c', 'go mod download && go build -buildmode=c-shared -ldflags="-s -w" -o "' + "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so" + '" .'
+            // Initialize go.sum and download dependencies, then build
+            commandLine 'sh', '-c', 'go mod tidy && go build -buildmode=c-shared -ldflags="-s -w" -o "' + "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so" + '" .'
         }
     }
 }
