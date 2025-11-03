@@ -64,7 +64,7 @@ abiConfigs.each { config ->
             environment 'GOARCH', goArch
             environment 'CC', "${toolchainPath}/${clangArch}${minApi}-clang"
             // Build the official tun2socks with Android-specific exports
-            commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so", 'tun2socks_android.go'
+            commandLine 'go', 'build', '-buildmode=c-shared', '-ldflags=-s -w', '-o', "${project.projectDir}/src/main/jniLibs/${abi}/libtun2socks.so", '.'
         }
     }
 }

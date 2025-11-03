@@ -1,3 +1,3 @@
-[submodule "jni/tun2socks"]
-	path = jni/tun2socks
+[submodule "app/jni/tun2socks"]
+	path = app/jni/tun2socks
 	url = https://github.com/xjasonlyu/tun2socks
