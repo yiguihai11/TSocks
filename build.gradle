@@ -2,7 +2,7 @@
 // This is intentionally left mostly empty for modern Android projects.
 
 plugins {
-    // Using Android Gradle Plugin version 8.13
-    // According to official docs, AGP 8.13 requires Gradle 8.7+
     id 'com.android.application' version '8.13.0' apply false
+    id 'com.android.library' version '8.13.0' apply false
+    id 'org.jetbrains.kotlin.android' version '2.2.21' apply false
 }
