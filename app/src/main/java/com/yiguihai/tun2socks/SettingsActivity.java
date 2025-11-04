@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.Toast;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -96,16 +98,21 @@ public class SettingsActivity extends AppCompatActivity {
             Toast.makeText(this, "Configuration saved!", Toast.LENGTH_SHORT).show();
         });
 
-        // Set up protocol spinner listener
-        protocolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        // Set up protocol dropdown listener
+        protocolSpinner.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
-                String protocol = (String) parent.getItemAtPosition(position);
-                handleProtocolChange(protocol);
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String protocol = s.toString();
+                if (!protocol.isEmpty()) {
+                    handleProtocolChange(protocol);
+                }
+            }
         });
 
         loadSettings();
