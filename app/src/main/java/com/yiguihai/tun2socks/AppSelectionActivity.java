@@ -104,24 +104,22 @@ public class AppSelectionActivity extends AppCompatActivity {
                     continue;
                 }
 
-                // Check if app has internet permission - only show apps that can actually use network
-                if (hasInternetPermission(packageInfo)) {
-                    ApplicationInfo appInfo = packageInfo.applicationInfo;
-                    // Filter out disabled applications
-                    if (!appInfo.enabled) {
-                        continue;
-                    }
-                    String appName = appInfo.loadLabel(pm).toString();
-                    boolean isSelected = selectedApps.contains(packageName);
-                    boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                // Show all apps regardless of network permission
+            ApplicationInfo appInfo = packageInfo.applicationInfo;
+            // Filter out disabled applications
+            if (!appInfo.enabled) {
+                continue;
+            }
+            String appName = appInfo.loadLabel(pm).toString();
+            boolean isSelected = selectedApps.contains(packageName);
+            boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
 
-                    try {
-                        appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp, appInfo.uid));
-                    } catch (Exception e) {
-                        // 如果图标加载失败，跳过此应用
-                        continue;
-                    }
-                }
+            try {
+                appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp, appInfo.uid));
+            } catch (Exception e) {
+                // 如果图标加载失败，跳过此应用
+                continue;
+            }
             }
 
             // Sort apps: enabled apps first, then by name
@@ -132,10 +130,32 @@ public class AppSelectionActivity extends AppCompatActivity {
                 return o1.appName.compareToIgnoreCase(o2.appName); // then by name
             });
 
+            // 查找 com.termux 包名
+            AppInfo termuxApp = null;
+            for (AppInfo app : appList) {
+                if ("com.termux".equals(app.packageName)) {
+                    termuxApp = app;
+                    break;
+                }
+            }
+
+            final AppInfo foundTermuxApp = termuxApp;
+
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE);
                 updateFilteredApps();
                 updateStats();
+
+                // 显示查找结果
+                if (foundTermuxApp != null) {
+                    Toast.makeText(AppSelectionActivity.this,
+                        "找到 Termux 应用: " + foundTermuxApp.appName +
+                        " | UID: " + foundTermuxApp.uid +
+                        " | 类型: " + (foundTermuxApp.isSystemApp ? "系统应用" : "用户应用"),
+                        Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(AppSelectionActivity.this, "未找到 com.termux 包名的应用", Toast.LENGTH_LONG).show();
+                }
             });
         }).start();
     }
