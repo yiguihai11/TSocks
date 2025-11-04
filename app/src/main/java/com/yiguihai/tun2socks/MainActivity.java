@@ -130,16 +130,7 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(logReceiver, new IntentFilter(TSocksVpnService.ACTION_LOG_BROADCAST));
 
         // Check if native library is available
-        try {
-            // Test if the library can be loaded
-            Tun2Socks.getStats();
-            addLog("Native library loaded successfully");
-        } catch (UnsatisfiedLinkError e) {
-            addLog("ERROR: Native library not found!");
-            addLog("Please build the app with: gradle buildGoLibs assembleDebug");
-            addLog("The VPN function will not work without the native library.");
-            showToast("Native library missing - VPN unavailable");
-        }
+        checkNativeLibrary();
 
         addLog("Welcome to TSocks!");
         updateConfigurationDisplay();
@@ -246,6 +237,121 @@ public class MainActivity extends AppCompatActivity {
         if (fab != null) {
             // Set FAB icon to connect icon
             fab.setImageResource(android.R.drawable.ic_media_play);
+        }
+    }
+
+    private void checkNativeLibrary() {
+        addLog("Checking native library availability...");
+
+        // Check if library files exist in the expected directories
+        checkLibraryFiles();
+
+        // Try to load the library directly
+        try {
+            addLog("Attempting to load library: tun2socks");
+            System.loadLibrary("tun2socks");
+            addLog("SUCCESS: Native library loaded successfully");
+
+            // Test if we can call a native method
+            int stats = Tun2Socks.getStats();
+            addLog("SUCCESS: Native method call successful, stats: " + stats);
+
+        } catch (UnsatisfiedLinkError e) {
+            addLog("ERROR: UnsatisfiedLinkError - " + e.getMessage());
+            addLog("Library loading failed with details:");
+            addLog("  Error type: " + e.getClass().getSimpleName());
+            addLog("  Error message: " + e.getMessage());
+
+            if (e.getMessage() != null) {
+                if (e.getMessage().contains("no suitable implementation found")) {
+                    addLog("  Cause: Library loaded but method not found");
+                } else if (e.getMessage().contains("dlopen failed")) {
+                    addLog("  Cause: Dynamic library loading failed");
+                } else if (e.getMessage().contains("library \"libtun2socks.so\" not found")) {
+                    addLog("  Cause: Library file not found");
+                } else {
+                    addLog("  Cause: Other linking error");
+                }
+            }
+
+            addLog("SOLUTION:");
+            addLog("  1. Build the Go library: gradle buildGoLibs");
+            addLog("  2. Clean and rebuild: gradle clean assembleDebug");
+            addLog("  3. Check if useLegacyPackaging is needed in build.gradle");
+
+            showToast("Native library loading failed");
+
+        } catch (SecurityException e) {
+            addLog("ERROR: SecurityException - " + e.getMessage());
+            addLog("Cause: Security manager blocked library loading");
+            showToast("Security error loading library");
+
+        } catch (NullPointerException e) {
+            addLog("ERROR: NullPointerException - " + e.getMessage());
+            addLog("Cause: Library loaded but method call failed");
+            showToast("Library method call failed");
+
+        } catch (Exception e) {
+            addLog("ERROR: Unexpected error - " + e.getClass().getSimpleName());
+            addLog("  Error message: " + e.getMessage());
+            addLog("  Stack trace: " + e.getStackTrace()[0].toString());
+            showToast("Unexpected error loading library");
+        }
+    }
+
+    private void checkLibraryFiles() {
+        addLog("Checking library file directories...");
+
+        // Check main jniLibs directory
+        String jniLibsPath = getApplicationInfo().nativeLibraryDir;
+        addLog("Native library directory: " + jniLibsPath);
+
+        try {
+            java.io.File libDir = new java.io.File(jniLibsPath);
+            if (libDir.exists() && libDir.isDirectory()) {
+                addLog("Library directory exists");
+                java.io.File[] files = libDir.listFiles();
+                if (files != null && files.length > 0) {
+                    addLog("Found " + files.length + " library files:");
+                    for (java.io.File file : files) {
+                        addLog("  - " + file.getName() + " (" + file.length() + " bytes)");
+                    }
+                } else {
+                    addLog("WARNING: No library files found in directory");
+                }
+            } else {
+                addLog("ERROR: Library directory does not exist: " + jniLibsPath);
+            }
+        } catch (Exception e) {
+            addLog("ERROR: Failed to check library directory: " + e.getMessage());
+        }
+
+        // Check if we can find libtun2socks.so specifically
+        try {
+            String libPath = jniLibsPath + "/libtun2socks.so";
+            java.io.File libFile = new java.io.File(libPath);
+            if (libFile.exists()) {
+                addLog("SUCCESS: libtun2socks.so found (" + libFile.length() + " bytes)");
+            } else {
+                addLog("ERROR: libtun2socks.so not found at: " + libPath);
+
+                // Try alternative paths
+                String[] altPaths = {
+                    "/data/data/" + getPackageName() + "/lib/libtun2socks.so",
+                    "/data/app/" + getPackageName() + "/lib/arm64/libtun2socks.so",
+                    "/data/app/" + getPackageName() + "/lib/arm/libtun2socks.so"
+                };
+
+                for (String altPath : altPaths) {
+                    java.io.File altFile = new java.io.File(altPath);
+                    if (altFile.exists()) {
+                        addLog("Found library at alternative path: " + altPath);
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            addLog("ERROR: Failed to check specific library file: " + e.getMessage());
         }
     }
 
