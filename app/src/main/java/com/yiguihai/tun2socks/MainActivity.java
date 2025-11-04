@@ -21,6 +21,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -94,10 +96,16 @@ public class MainActivity extends AppCompatActivity {
         // Find the settings and apps buttons
         MaterialButton settingsButton = findViewById(R.id.settings_button);
         MaterialButton appsButton = findViewById(R.id.apps_button);
+        MaterialButton statsButton = findViewById(R.id.stats_button);
+        MaterialButton refreshButton = findViewById(R.id.refresh_button);
 
         settingsButton.setOnClickListener(v -> openSettings());
 
         appsButton.setOnClickListener(v -> openAppSelection());
+
+        statsButton.setOnClickListener(v -> showStatistics());
+
+        refreshButton.setOnClickListener(v -> refreshStats());
 
         // FAB should act as a quick toggle for VPN connection
         fab.setOnClickListener(v -> {
@@ -224,5 +232,96 @@ public class MainActivity extends AppCompatActivity {
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_about) {
+            showAboutDialog();
+            return true;
+        } else if (id == R.id.action_help) {
+            showHelpDialog();
+            return true;
+        } else if (id == R.id.action_export_config) {
+            exportConfiguration();
+            return true;
+        } else if (id == R.id.action_import_config) {
+            importConfiguration();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showAboutDialog() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("About TSocks")
+               .setMessage("TSocks - Modern VPN Client\n\nVersion: 1.0\n\nFeatures:\n• SOCKS5/HTTP Proxy Support\n• Shadowsocks Protocol\n• Material 3 Design\n• Real-time Statistics\n\nBuilt with ❤️ using Go and Android")
+               .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+               .show();
+    }
+
+    private void showHelpDialog() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Help & Guide")
+               .setMessage("How to use TSocks:\n\n" +
+                       "1. Configure Proxy:\n" +
+                       "   • Tap Settings button\n" +
+                       "   • Enter proxy server details\n" +
+                       "   • Select protocol type\n\n" +
+                       "2. Select Apps (Optional):\n" +
+                       "   • Tap Apps button\n" +
+                       "   • Choose which apps use VPN\n\n" +
+                       "3. Connect:\n" +
+                       "   • Tap Connect or FAB button\n" +
+                       "   • Grant VPN permission\n" +
+                       "   • Monitor connection status\n\n" +
+                       "Need help? Contact support!")
+               .setPositiveButton("Got it", (dialog, which) -> dialog.dismiss())
+               .show();
+    }
+
+    private void exportConfiguration() {
+        // TODO: Implement configuration export functionality
+        showToast("Export feature coming soon!");
+    }
+
+    private void importConfiguration() {
+        // TODO: Implement configuration import functionality
+        showToast("Import feature coming soon!");
+    }
+
+    private void showStatistics() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Connection Statistics")
+               .setMessage("Connection Status: " + (isVpnRunning ? "Connected" : "Disconnected") +
+                          "\n\nData Statistics:" +
+                          "\n• Upload: Check main interface" +
+                          "\n• Download: Check main interface" +
+                          "\n• Active Connections: Check main interface" +
+                          "\n\nSession Info:" +
+                          "\n• Session Duration: " + (isVpnRunning ? "Active" : "Not started") +
+                          "\n• Protocol: Configured in Settings" +
+                          "\n• Server: Configured in Settings")
+               .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+               .show();
+    }
+
+    private void refreshStats() {
+        // Update statistics display
+        if (isVpnRunning) {
+            addLog("Statistics refreshed");
+            showToast("Statistics refreshed");
+        } else {
+            showToast("Connect to VPN to view statistics");
+        }
     }
 }

@@ -57,12 +57,15 @@ public class AppSelectionActivity extends AppCompatActivity {
                     .getStringSet(PREF_SELECTED_APPS, new HashSet<>());
 
             for (ApplicationInfo packageInfo : packages) {
-                // Filter out system apps
-                if ((packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                    String appName = packageInfo.loadLabel(pm).toString();
-                    String packageName = packageInfo.packageName;
-                    boolean isSelected = selectedApps.contains(packageName);
-                    appList.add(new AppInfo(appName, packageName, packageInfo.loadIcon(pm), isSelected));
+                // Include both user and system apps
+                String appName = packageInfo.loadLabel(pm).toString();
+                String packageName = packageInfo.packageName;
+                boolean isSelected = selectedApps.contains(packageName);
+                boolean isSystemApp = (packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+
+                // Skip some system packages that are not actual apps
+                if (!shouldSkipPackage(packageName)) {
+                    appList.add(new AppInfo(appName, packageName, packageInfo.loadIcon(pm), isSelected, isSystemApp));
                 }
             }
 
@@ -74,6 +77,33 @@ public class AppSelectionActivity extends AppCompatActivity {
                 appAdapter.notifyDataSetChanged();
             });
         }).start();
+    }
+
+    private boolean shouldSkipPackage(String packageName) {
+        // Skip system packages that are not actual user apps
+        String[] skipPackages = {
+            "android",
+            "com.android.systemui",
+            "com.google.android.gms",
+            "com.google.android.gsf",
+            "com.google.android.partnersetup",
+            "com.google.android.onetimeinitializer",
+            "com.android.providers.downloads",
+            "com.android.providers.media",
+            "com.android.externalstorage",
+            "com.android.providers.calendar",
+            "com.android.providers.contacts",
+            "com.android.settings",
+            "com.android.captiveportallogin",
+            "com.android.shell"
+        };
+
+        for (String skip : skipPackages) {
+            if (packageName.startsWith(skip)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void saveSelection() {
@@ -88,7 +118,7 @@ public class AppSelectionActivity extends AppCompatActivity {
         editor.putStringSet(PREF_SELECTED_APPS, selectedApps);
         editor.apply();
 
-        Toast.makeText(this, "Selection saved", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Selection saved (" + selectedApps.size() + " apps)", Toast.LENGTH_SHORT).show();
         finish(); // Close the activity
     }
 }

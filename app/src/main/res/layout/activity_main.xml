@@ -190,21 +190,56 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/settings_button"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.Material3.Button.TonalButton.Icon"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:text="Settings" />
+                    android:text="Settings"
+                    app:icon="@drawable/ic_settings"
+                    app:iconGravity="textStart" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/apps_button"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.Material3.Button.TonalButton.Icon"
                     android:layout_width="0dp"
                     android:layout_height="60dp"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:text="Apps" />
+                    android:text="Apps"
+                    app:icon="@drawable/ic_apps"
+                    app:iconGravity="textStart" />
+
+            </LinearLayout>
+
+            <!-- Additional Quick Actions -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/stats_button"
+                    style="@style/Widget.Material3.Button.TonalButton.Icon"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="Statistics"
+                    app:icon="@drawable/ic_stats"
+                    app:iconGravity="textStart" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/refresh_button"
+                    style="@style/Widget.Material3.Button.TonalButton.Icon"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="Refresh"
+                    app:icon="@drawable/ic_refresh"
+                    app:iconGravity="textStart" />
 
             </LinearLayout>
 
