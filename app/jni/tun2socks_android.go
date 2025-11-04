@@ -167,6 +167,7 @@ func (e *Tun2SocksEngine) Start() (err error) {
 
 	e.started = true
 	cancel = e.cancel
+	running = true
 
 	log.Printf("Tun2Socks engine started successfully - Device: %s, Proxy: %s",
 		e.config.device, e.config.proxy)
@@ -291,13 +292,13 @@ func StopWithLogger() {
 
 //export Stop
 func Stop() {
-	// Create a temporary engine instance to stop
-	config := &Config{}
-	engine := NewTun2SocksEngine(config)
-
-	if err := engine.Stop(); err != nil {
-		log.Printf("Failed to stop tun2socks engine: %v", err)
+	// Stop the global engine instance
+	if cancel != nil {
+		cancel()
 	}
+	engine.Stop()
+	running = false
+	log.Println("Tun2Socks engine stopped")
 }
 
 //export getStats
