@@ -305,6 +305,7 @@ func Stop() {
 func getStats() C.long {
 	// Return a single stat for now - bytes uploaded
 	// Using C.long which is a standard CGo type
+	log.Printf("getStats() called from Java")
 	return 1024
 }
 
@@ -312,6 +313,12 @@ func getStats() C.long {
 func setTimeout(timeoutMs C.int) {
 	log.Printf("Timeout set to %d ms", timeoutMs)
 	// Implementation would set the timeout in the engine configuration
+}
+
+//export testJNI
+func testJNI() C.long {
+	log.Printf("testJNI() called - testing JNI connection")
+	return 12345
 }
 
 // Empty main function required for CGO shared library build

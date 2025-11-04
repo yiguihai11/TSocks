@@ -270,9 +270,25 @@ public class MainActivity extends AppCompatActivity {
 
             // Test if we can call a native method
             addLog("Testing native method call...");
-            addLog("Note: If this fails, the Go library may need rebuilding");
-            int stats = Tun2Socks.getStats();
-            addLog("SUCCESS: Native method call successful, stats: " + stats);
+            addLog("Expected JNI symbol: Java_com_yiguihai_tun2socks_Tun2Socks_getStats");
+            addLog("Note: If this fails, check if library contains correct symbols");
+
+            try {
+                addLog("Testing simple JNI method first...");
+                int testResult = Tun2Socks.testJNI();
+                addLog("SUCCESS: testJNI() worked, result: " + testResult);
+
+                addLog("Now testing getStats()...");
+                int stats = Tun2Socks.getStats();
+                addLog("SUCCESS: getStats() worked, stats: " + stats);
+
+            } catch (UnsatisfiedLinkError e) {
+                addLog("JNI Method Error: " + e.getMessage());
+                addLog("This suggests the library was built with wrong function names");
+                addLog("Or the library may not contain the exported symbols");
+                addLog("Try: gradle buildGoLibs clean assembleDebug");
+                throw e;
+            }
 
         } catch (UnsatisfiedLinkError e) {
             addLog("ERROR: UnsatisfiedLinkError - " + e.getMessage());

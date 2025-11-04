@@ -126,6 +126,11 @@ public class Tun2Socks {
      */
     public static native void setTimeout(int timeoutMs);
 
+    /**
+     * Test method for JNI connection debugging.
+     */
+    public static native int testJNI();
+
     static {
         // The name "tun2socks" must match the name of the generated .so file (libtun2socks.so)
         System.loadLibrary("tun2socks");
