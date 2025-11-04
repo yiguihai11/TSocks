@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Proxy Protocol Types for Spinner -->
+    <string-array name="protocol_types">
+        <item>SOCKS5</item>
+        <item>HTTP</item>
+        <item>SOCKS4</item>
+        <item>Shadowsocks</item>
+    </string-array>
+
     <!-- Proxy Protocol Options -->
     <string-array name="proxy_protocols">
         <item>SOCKS5</item>

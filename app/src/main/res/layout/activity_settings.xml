@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -9,10 +10,118 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- Proxy Server Configuration -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔗 Proxy Server Configuration"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Protocol Selection -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Protocol Type" />
+
+                <Spinner
+                    android:id="@+id/spinner_protocol"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:entries="@array/protocol_types" />
+
+                <!-- Server Address -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Server Address">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_server"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Server Port -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Server Port">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_port"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Username -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Username (optional)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_username"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Password -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Password (optional)"
+                    app:endIconMode="password_toggle">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_text_password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Save Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_save_settings"
+                    style="@style/Widget.Material3.Button.UnelevatedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Save Configuration"
+                    app:icon="@android:drawable/ic_menu_save" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Network Parameters" />
+            android:text="🌐 Network Parameters" />
 
         <EditText
             android:id="@+id/edit_text_mtu"
