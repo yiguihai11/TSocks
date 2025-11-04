@@ -213,8 +213,8 @@ func ValidateProxyType(proxyType string) bool {
 	return exists
 }
 
-//export Start
-func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password *C.char, excludedIps *C.char) {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_Start
+func Java_com_yiguihai_tun2socks_Tun2Socks_Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password *C.char, excludedIps *C.char) {
 	// Convert C strings to Go strings
 	typeStr := C.GoString(proxyType)
 	serverStr := C.GoString(server)
@@ -238,8 +238,8 @@ func Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, password 
 	}
 }
 
-//export StartWithUrl
-func StartWithUrl(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_StartWithUrl
+func Java_com_yiguihai_tun2socks_Tun2Socks_StartWithUrl(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
 	// Convert C strings to Go strings
 	proxyUrlStr := C.GoString(proxyUrl)
 	excludedIpsStr := C.GoString(excludedIps)
@@ -272,15 +272,15 @@ func StartWithUrl(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
 	}
 }
 
-//export StartWithConfig
-func StartWithConfig(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_StartWithConfig
+func Java_com_yiguihai_tun2socks_Tun2Socks_StartWithConfig(tunFd C.int, proxyUrl *C.char, excludedIps *C.char) {
 	// For now, delegate to URL-based method
 	// In a full implementation, this would parse a more complex config structure
-	StartWithUrl(tunFd, proxyUrl, excludedIps)
+	Java_com_yiguihai_tun2socks_Tun2Socks_StartWithUrl(tunFd, proxyUrl, excludedIps)
 }
 
-//export StopWithLogger
-func StopWithLogger() {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_StopWithLogger
+func Java_com_yiguihai_tun2socks_Tun2Socks_StopWithLogger() {
 	// Use the existing stop mechanism
 	if cancel != nil {
 		cancel()
@@ -290,8 +290,8 @@ func StopWithLogger() {
 	log.Println("Tun2Socks engine stopped with logger")
 }
 
-//export Stop
-func Stop() {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_Stop
+func Java_com_yiguihai_tun2socks_Tun2Socks_Stop() {
 	// Stop the global engine instance
 	if cancel != nil {
 		cancel()
@@ -301,22 +301,22 @@ func Stop() {
 	log.Println("Tun2Socks engine stopped")
 }
 
-//export getStats
-func getStats() C.long {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_getStats
+func Java_com_yiguihai_tun2socks_Tun2Socks_getStats() C.long {
 	// Return a single stat for now - bytes uploaded
 	// Using C.long which is a standard CGo type
 	log.Printf("getStats() called from Java")
 	return 1024
 }
 
-//export setTimeout
-func setTimeout(timeoutMs C.int) {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_setTimeout
+func Java_com_yiguihai_tun2socks_Tun2Socks_setTimeout(timeoutMs C.int) {
 	log.Printf("Timeout set to %d ms", timeoutMs)
 	// Implementation would set the timeout in the engine configuration
 }
 
-//export testJNI
-func testJNI() C.long {
+//export Java_com_yiguihai_tun2socks_Tun2Socks_testJNI
+func Java_com_yiguihai_tun2socks_Tun2Socks_testJNI() C.long {
 	log.Printf("testJNI() called - testing JNI connection")
 	return 12345
 }
