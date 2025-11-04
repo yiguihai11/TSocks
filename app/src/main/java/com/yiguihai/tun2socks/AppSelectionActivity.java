@@ -87,14 +87,22 @@ public class AppSelectionActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         new Thread(() -> {
             PackageManager pm = getPackageManager();
-            List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+            // 使用getInstalledPackages来获取包含权限信息的包列表，匹配Compose代码
+            List<PackageInfo> packages;
+            try {
+                packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
+            } catch (Exception e) {
+                // 如果GET_PERMISSIONS失败，回退到基本方法
+                packages = pm.getInstalledPackages(0);
+            }
+
             Set<String> selectedApps = PreferenceManager.getDefaultSharedPreferences(this)
                     .getStringSet(PREF_SELECTED_APPS, new HashSet<>());
 
             // Get current package name to exclude ourselves
             String currentPackageName = getPackageName();
 
-            for (ApplicationInfo packageInfo : packages) {
+            for (PackageInfo packageInfo : packages) {
                 String packageName = packageInfo.packageName;
 
                 // Only exclude our own package
@@ -102,18 +110,23 @@ public class AppSelectionActivity extends AppCompatActivity {
                     continue;
                 }
 
-                // Include all apps (except system critical apps that might cause issues)
-                // Remove the internet permission filter to show all user-installed apps
-                if (shouldIncludeApp(packageInfo)) {
-                    String appName = packageInfo.loadLabel(pm).toString();
+                // Check if app has internet permission (匹配Compose代码逻辑)
+                if (hasInternetPermission(packageInfo)) {
+                    ApplicationInfo appInfo = packageInfo.applicationInfo;
+                    String appName = appInfo.loadLabel(pm).toString();
                     boolean isSelected = selectedApps.contains(packageName);
-                    boolean isSystemApp = (packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                    boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
 
-                    appList.add(new AppInfo(appName, packageName, packageInfo.loadIcon(pm), isSelected, isSystemApp));
+                    try {
+                        appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp));
+                    } catch (Exception e) {
+                        // 如果图标加载失败，使用默认图标或跳过
+                        continue;
+                    }
                 }
             }
 
-            // Sort apps: enabled apps first, then by name
+            // Sort apps: enabled apps first, then by name (匹配Compose代码排序逻辑)
             Collections.sort(appList, (o1, o2) -> {
                 if (o1.isSelected != o2.isSelected) {
                     return o2.isSelected ? 1 : -1; // enabled apps first
@@ -129,12 +142,16 @@ public class AppSelectionActivity extends AppCompatActivity {
         }).start();
     }
 
-    private boolean shouldIncludeApp(ApplicationInfo packageInfo) {
-        String packageName = packageInfo.packageName;
-
-        // Only exclude our own package from app selection
-        // Include all other apps (both user and system apps)
-        return !packageName.equals(getPackageName());
+    private boolean hasInternetPermission(PackageInfo packageInfo) {
+        // 检查应用是否有INTERNET权限 (匹配Compose代码逻辑)
+        if (packageInfo.requestedPermissions != null) {
+            for (String permission : packageInfo.requestedPermissions) {
+                if (Manifest.permission.INTERNET.equals(permission)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // Real-time save when app is selected/deselected
