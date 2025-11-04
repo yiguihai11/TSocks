@@ -90,6 +90,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Find the settings and apps buttons
+        MaterialButton settingsButton = findViewById(R.id.settings_button);
+        MaterialButton appsButton = findViewById(R.id.apps_button);
+
+        settingsButton.setOnClickListener(v -> openSettings());
+
+        appsButton.setOnClickListener(v -> {
+            showToast("Apps feature coming soon!");
+            // TODO: Implement apps selection functionality
+        });
+
         fab.setOnClickListener(v -> openSettings());
 
         LocalBroadcastManager.getInstance(this).registerReceiver(logReceiver, new IntentFilter(TSocksVpnService.ACTION_LOG_BROADCAST));
