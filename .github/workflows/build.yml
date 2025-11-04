@@ -80,25 +80,25 @@ jobs:
         cat > upload/README.md << 'EOF'
 # TSocks APK Downloads
 
-## 选择适合的APK版本
+## Choose the right APK version
 
-### 📱 手机设备
-- **ARM64 (推荐)**: `arm64/` - 现代Android设备 (2018年后)
-- **ARM32**: `arm32/` - 较旧Android设备 (2018年前)
+### Mobile Devices
+- **ARM64 (recommended)**: `arm64/` - Modern Android devices (2018+)
+- **ARM32**: `arm32/` - Older Android devices (pre-2018)
 
-### 💻 模拟器/PC
-- **x64**: `x64/` - 64位模拟器或PC
-- **x86**: `x86/` - 32位模拟器或PC
+### Emulators/PC
+- **x64**: `x64/` - 64-bit emulators or PC
+- **x86**: `x86/` - 32-bit emulators or PC
 
-## 如何选择？
-1. 不确定设备架构？选择 **ARM64** (兼容性最好)
-2. 查看设备设置 → 关于手机 → 处理器架构
-3. 使用 `adb shell getprop ro.product.cpu.abi` 命令查看
+## How to choose?
+1. Not sure about device architecture? Choose **ARM64** (best compatibility)
+2. Check device settings -> About phone -> Processor architecture
+3. Use command: `adb shell getprop ro.product.cpu.abi`
 
-## 文件说明
-- 每个APK仅包含对应架构的原生库
-- 文件大小: ~3-4MB per APK
-- 支持Android 7.0+ (API 26+)
+## File details
+- Each APK contains native libraries for corresponding architecture only
+- File size: ~3-4MB per APK
+- Supports Android 7.0+ (API 26+)
 
 Build: ${{ github.sha }}
 Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
