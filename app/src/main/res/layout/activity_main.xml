@@ -394,7 +394,8 @@
                             android:fontFamily="monospace"
                             android:text="No logs yet..."
                             android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant" />
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textIsSelectable="true" />
 
                     </androidx.core.widget.NestedScrollView>
 
