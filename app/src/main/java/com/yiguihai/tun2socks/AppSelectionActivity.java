@@ -105,8 +105,7 @@ public class AppSelectionActivity extends AppCompatActivity {
                 }
 
                 // Check if app has internet permission - only show apps that can actually use network
-                // Removed this check to show all apps, as requested by the user.
-                // if (hasInternetPermission(packageInfo)) {
+                if (hasInternetPermission(packageInfo)) {
                     ApplicationInfo appInfo = packageInfo.applicationInfo;
                     // Filter out disabled applications
                     if (!appInfo.enabled) {
@@ -122,7 +121,7 @@ public class AppSelectionActivity extends AppCompatActivity {
                         // 如果图标加载失败，跳过此应用
                         continue;
                     }
-                // }
+                }
             }
 
             // Sort apps: enabled apps first, then by name
@@ -190,27 +189,14 @@ public class AppSelectionActivity extends AppCompatActivity {
     }
 
     private void setupFilterListeners() {
-        chipAllApps.setOnClickListener(v -> {
-            currentFilter = "all";
-            chipAllApps.setChecked(true);
-            chipUserApps.setChecked(false);
-            chipSystemApps.setChecked(false);
-            updateFilteredApps();
-        });
-
-        chipUserApps.setOnClickListener(v -> {
-            currentFilter = "user";
-            chipAllApps.setChecked(false);
-            chipUserApps.setChecked(true);
-            chipSystemApps.setChecked(false);
-            updateFilteredApps();
-        });
-
-        chipSystemApps.setOnClickListener(v -> {
-            currentFilter = "system";
-            chipAllApps.setChecked(false);
-            chipUserApps.setChecked(false);
-            chipSystemApps.setChecked(true);
+        chipGroupFilter.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.chip_all_apps) {
+                currentFilter = "all";
+            } else if (checkedId == R.id.chip_user_apps) {
+                currentFilter = "user";
+            } else if (checkedId == R.id.chip_system_apps) {
+                currentFilter = "system";
+            }
             updateFilteredApps();
         });
     }
@@ -237,8 +223,11 @@ public class AppSelectionActivity extends AppCompatActivity {
             }
         }
 
-        appAdapter.notifyDataSetChanged();
-        updateStats();
+        // Use notifyDataSetChanged() for simple refresh, or consider better diff utils
+        runOnUiThread(() -> {
+            appAdapter.notifyDataSetChanged();
+            updateStats();
+        });
     }
 
     private void updateStats() {

@@ -6,6 +6,17 @@
     android:padding="8dp"
     android:gravity="center_vertical">
 
+    <!-- 序号显示 -->
+    <TextView
+        android:id="@+id/text_view_app_number"
+        android:layout_width="32dp"
+        android:layout_height="wrap_content"
+        android:text="1."
+        android:textAlignment="center"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
     <ImageView
         android:id="@+id/image_view_app_icon"
         android:layout_width="40dp"

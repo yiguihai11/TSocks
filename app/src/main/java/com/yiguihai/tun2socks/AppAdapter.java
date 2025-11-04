@@ -40,8 +40,16 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull AppViewHolder holder, int position) {
         AppInfo appInfo = appList.get(position);
+
+        // 设置序号（从1开始计数）
+        holder.appNumber.setText((position + 1) + ".");
+
         holder.appName.setText(appInfo.appName);
         holder.appIcon.setImageDrawable(appInfo.icon);
+
+        // Remove previous listener to avoid unwanted triggers
+        holder.appSelected.setOnCheckedChangeListener(null);
+        // Set checked state
         holder.appSelected.setChecked(appInfo.isSelected);
 
         // Set app details text
@@ -52,13 +60,24 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         holder.appDetails.setText(details);
 
         holder.itemView.setOnClickListener(v -> {
-            holder.appSelected.toggle();
+            // Toggle the selection state
+            boolean newState = !appInfo.isSelected;
+            appInfo.isSelected = newState;
+            holder.appSelected.setChecked(newState);
+
+            if (listener != null) {
+                listener.onAppSelected(appInfo, newState);
+            }
         });
 
+        // Set new listener after the checked state is set
         holder.appSelected.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            appInfo.isSelected = isChecked;
-            if (listener != null) {
-                listener.onAppSelected(appInfo, isChecked);
+            // Update the model only if this is not just a view recycling
+            if (appInfo.isSelected != isChecked) {
+                appInfo.isSelected = isChecked;
+                if (listener != null) {
+                    listener.onAppSelected(appInfo, isChecked);
+                }
             }
         });
     }
@@ -69,6 +88,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
     }
 
     static class AppViewHolder extends RecyclerView.ViewHolder {
+        TextView appNumber; // 序号显示
         ImageView appIcon;
         TextView appName;
         TextView appDetails; // Added
@@ -76,6 +96,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 
         public AppViewHolder(@NonNull View itemView) {
             super(itemView);
+            appNumber = itemView.findViewById(R.id.text_view_app_number); // Initialized
             appIcon = itemView.findViewById(R.id.image_view_app_icon);
             appName = itemView.findViewById(R.id.text_view_app_name);
             appDetails = itemView.findViewById(R.id.text_view_app_details); // Initialized
