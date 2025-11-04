@@ -87,14 +87,8 @@ public class AppSelectionActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         new Thread(() -> {
             PackageManager pm = getPackageManager();
-            // 使用getInstalledPackages来获取包含权限信息的包列表，匹配Compose代码
-            List<PackageInfo> packages;
-            try {
-                packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
-            } catch (Exception e) {
-                // 如果GET_PERMISSIONS失败，回退到基本方法
-                packages = pm.getInstalledPackages(0);
-            }
+            // 使用getInstalledApplications获取所有应用，不限制权限
+            List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 
             Set<String> selectedApps = PreferenceManager.getDefaultSharedPreferences(this)
                     .getStringSet(PREF_SELECTED_APPS, new HashSet<>());
@@ -102,31 +96,28 @@ public class AppSelectionActivity extends AppCompatActivity {
             // Get current package name to exclude ourselves
             String currentPackageName = getPackageName();
 
-            for (PackageInfo packageInfo : packages) {
-                String packageName = packageInfo.packageName;
+            for (ApplicationInfo appInfo : packages) {
+                String packageName = appInfo.packageName;
 
                 // Only exclude our own package
                 if (packageName.equals(currentPackageName)) {
                     continue;
                 }
 
-                // Check if app has internet permission (匹配Compose代码逻辑)
-                if (hasInternetPermission(packageInfo)) {
-                    ApplicationInfo appInfo = packageInfo.applicationInfo;
-                    String appName = appInfo.loadLabel(pm).toString();
-                    boolean isSelected = selectedApps.contains(packageName);
-                    boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                // Include all apps (no permission filtering)
+                String appName = appInfo.loadLabel(pm).toString();
+                boolean isSelected = selectedApps.contains(packageName);
+                boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
 
-                    try {
-                        appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp));
-                    } catch (Exception e) {
-                        // 如果图标加载失败，使用默认图标或跳过
-                        continue;
-                    }
+                try {
+                    appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp));
+                } catch (Exception e) {
+                    // 如果图标加载失败，跳过此应用
+                    continue;
                 }
             }
 
-            // Sort apps: enabled apps first, then by name (匹配Compose代码排序逻辑)
+            // Sort apps: enabled apps first, then by name
             Collections.sort(appList, (o1, o2) -> {
                 if (o1.isSelected != o2.isSelected) {
                     return o2.isSelected ? 1 : -1; // enabled apps first
@@ -142,18 +133,7 @@ public class AppSelectionActivity extends AppCompatActivity {
         }).start();
     }
 
-    private boolean hasInternetPermission(PackageInfo packageInfo) {
-        // 检查应用是否有INTERNET权限 (匹配Compose代码逻辑)
-        if (packageInfo.requestedPermissions != null) {
-            for (String permission : packageInfo.requestedPermissions) {
-                if (Manifest.permission.INTERNET.equals(permission)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
+    
     // Real-time save when app is selected/deselected
     private void onAppSelected(AppInfo app, boolean isSelected) {
         saveAppSelection();
