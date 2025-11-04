@@ -314,6 +314,12 @@ func setTimeout(timeoutMs C.int) {
 	// Implementation would set the timeout in the engine configuration
 }
 
+// Empty main function required for CGO shared library build
+func main() {
+	// Shared library build requires main function, even if empty
+	// Initialization is done in init()
+}
+
 // Initialization function for JNI library
 func init() {
 	// Enhanced logging setup
