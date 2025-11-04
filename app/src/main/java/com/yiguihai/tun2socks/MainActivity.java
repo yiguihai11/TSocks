@@ -279,24 +279,8 @@ public class MainActivity extends AppCompatActivity {
             addLog("  Error type: " + e.getClass().getSimpleName());
             addLog("  Error message: " + e.getMessage());
 
-            // Try alternative loading methods if standard loading failed
-            addLog("Trying alternative loading methods...");
-
-            try {
-                String jniLibsPath = getApplicationInfo().nativeLibraryDir;
-                String libPath = jniLibsPath + "/libtun2socks.so";
-                addLog("Attempting to load with absolute path: " + libPath);
-                System.load(libPath);
-                addLog("SUCCESS: Native library loaded with absolute path");
-
-                // Test method call
-                int stats = Tun2Socks.getStats();
-                addLog("SUCCESS: Native method call successful, stats: " + stats);
-
-            } catch (Exception e2) {
-                addLog("Alternative loading also failed: " + e2.getMessage());
-                addLog("This might be a JNI method naming issue");
-            }
+            // Note: With modern packaging, no alternative loading needed
+            // Libraries are loaded directly from APK via System.loadLibrary()
 
             if (e.getMessage() != null) {
                 if (e.getMessage().contains("no suitable implementation found")) {
@@ -313,11 +297,9 @@ public class MainActivity extends AppCompatActivity {
             addLog("SOLUTION:");
             addLog("  1. Build the Go library: gradle buildGoLibs");
             addLog("  2. Clean and rebuild: gradle clean assembleDebug");
-            addLog("  3. Check AndroidManifest.xml:");
-            addLog("     - Use android:extractNativeLibs=\"false\" (modern)");
-            addLog("     - Remove <uses-native-library> declaration");
-            addLog("  4. Check build.gradle has useLegacyPackaging = false (modern)");
-            addLog("  5. Verify library files are in src/main/jniLibs/<abi>/ directories");
+            addLog("  3. Check JNI function names match between Java and Go");
+            addLog("  4. Verify AndroidManifest.xml has extractNativeLibs=\"false\"");
+            addLog("  5. Ensure Go //export names match Java native method names");
 
             showToast("Native library loading failed");
 
@@ -350,10 +332,9 @@ public class MainActivity extends AppCompatActivity {
 
             if (extractNativeLibs) {
                 addLog("extractNativeLibs is ENABLED - libraries extracted to filesystem");
-                addLog("This provides compatibility with absolute path loading");
             } else {
                 addLog("extractNativeLibs is DISABLED - libraries loaded from APK (modern)");
-                addLog("Note: useLegacyPackaging=true enables fallback loading");
+                addLog("This is the recommended modern approach for Android 12+");
             }
 
             // Check application info for native library dir

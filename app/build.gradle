@@ -32,14 +32,8 @@ android {
         }
     }
 
-    // Packaging options for native libraries
-    packagingOptions {
-        jniLibs {
-            // Temporarily use legacy packaging for stability
-            // TODO: Move to modern packaging once JNI methods are fully working
-            useLegacyPackaging = true
-        }
-    }
+    // Modern packaging options - no legacy packaging needed
+    // Native libraries will be loaded directly from APK
 
     buildTypes {
         release {
