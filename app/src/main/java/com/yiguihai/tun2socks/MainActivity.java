@@ -283,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
             addLog("  2. Clean and rebuild: gradle clean assembleDebug");
             addLog("  3. Check AndroidManifest.xml:");
             addLog("     - Add android:extractNativeLibs=\"true\" to <application>");
-            addLog("     - Add <uses-native-library android:name=\"libtun2socks.so\" android:required=\"true\" />");
+            addLog("     - Remove <uses-native-library> declaration (not needed for private libs)");
             addLog("  4. Check build.gradle has useLegacyPackaging = true");
             addLog("  5. Verify library files are in src/main/jniLibs/<abi>/ directories");
 
@@ -316,10 +316,11 @@ public class MainActivity extends AppCompatActivity {
             boolean extractNativeLibs = (appInfo.flags & ApplicationInfo.FLAG_EXTRACT_NATIVE_LIBS) != 0;
             addLog("extractNativeLibs: " + (extractNativeLibs ? "ENABLED ✓" : "DISABLED ⚠"));
 
-            if (!extractNativeLibs) {
-                addLog("WARNING: extractNativeLibs is disabled in AndroidManifest.xml");
-                addLog("This may cause library loading issues on some devices");
-                addLog("Consider adding android:extractNativeLibs=\"true\" to <application>");
+            if (extractNativeLibs) {
+                addLog("extractNativeLibs is ENABLED - libraries are extracted to filesystem");
+            } else {
+                addLog("extractNativeLibs is DISABLED - libraries loaded from APK (recommended for modern Android)");
+                addLog("This is the recommended setting with useLegacyPackaging");
             }
 
             // Check application info for native library dir
