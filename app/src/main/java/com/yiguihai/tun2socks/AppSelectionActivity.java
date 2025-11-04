@@ -90,6 +90,20 @@ public class AppSelectionActivity extends AppCompatActivity {
             // 使用getInstalledPackages获取包含权限信息的包列表
             List<PackageInfo> packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
 
+            // 立即检查 com.termux 是否在原始包列表中（过滤前）
+            boolean termuxExistsInPackages = false;
+            PackageInfo termuxPackageInfo = null;
+            for (PackageInfo pkg : packages) {
+                if ("com.termux".equals(pkg.packageName)) {
+                    termuxExistsInPackages = true;
+                    termuxPackageInfo = pkg;
+                    break;
+                }
+            }
+
+            final boolean foundInOriginalList = termuxExistsInPackages;
+            final PackageInfo foundPackageInfo = termuxPackageInfo;
+
             Set<String> selectedApps = PreferenceManager.getDefaultSharedPreferences(this)
                     .getStringSet(PREF_SELECTED_APPS, new HashSet<>());
 
@@ -132,10 +146,15 @@ public class AppSelectionActivity extends AppCompatActivity {
 
             // 查找 com.termux 包名
             AppInfo termuxApp = null;
+            List<AppInfo> termuxRelatedApps = new ArrayList<>();
             for (AppInfo app : appList) {
                 if ("com.termux".equals(app.packageName)) {
                     termuxApp = app;
-                    break;
+                }
+                // 查找所有包含 "termux" 的应用
+                if (app.packageName.toLowerCase().contains("termux") ||
+                    app.appName.toLowerCase().contains("termux")) {
+                    termuxRelatedApps.add(app);
                 }
             }
 
@@ -147,15 +166,28 @@ public class AppSelectionActivity extends AppCompatActivity {
                 updateStats();
 
                 // 显示查找结果
-                if (foundTermuxApp != null) {
-                    Toast.makeText(AppSelectionActivity.this,
-                        "找到 Termux 应用: " + foundTermuxApp.appName +
-                        " | UID: " + foundTermuxApp.uid +
-                        " | 类型: " + (foundTermuxApp.isSystemApp ? "系统应用" : "用户应用"),
-                        Toast.LENGTH_LONG).show();
+                String resultMessage = "";
+                if (foundInOriginalList) {
+                    resultMessage = "✓ 系统包列表中找到 com.termux\n";
+                    if (foundPackageInfo != null && foundPackageInfo.applicationInfo != null) {
+                        boolean isEnabled = foundPackageInfo.applicationInfo.enabled;
+                        resultMessage += "应用状态: " + (isEnabled ? "已启用" : "已禁用") + "\n";
+                        boolean isSystemApp = (foundPackageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                        resultMessage += "应用类型: " + (isSystemApp ? "系统应用" : "用户应用") + "\n";
+                        resultMessage += "UID: " + foundPackageInfo.applicationInfo.uid;
+                    }
                 } else {
-                    Toast.makeText(AppSelectionActivity.this, "未找到 com.termux 包名的应用", Toast.LENGTH_LONG).show();
+                    resultMessage = "✗ 系统包列表中没有 com.termux\n";
+                    resultMessage += "说明应用未安装或系统无法识别";
                 }
+
+                if (foundTermuxApp != null) {
+                    resultMessage += "\n\n✓ 在应用列表中找到: " + foundTermuxApp.appName;
+                } else if (foundInOriginalList) {
+                    resultMessage += "\n\n⚠ 在包列表中找到但被过滤掉了";
+                }
+
+                Toast.makeText(AppSelectionActivity.this, resultMessage, Toast.LENGTH_LONG).show();
             });
         }).start();
     }
@@ -254,9 +286,13 @@ public class AppSelectionActivity extends AppCompatActivity {
         int totalCount = appList.size();
         int filteredCount = filteredAppList.size();
         int enabledCount = 0;
+        boolean hasTermux = false;
 
         for (AppInfo app : appList) {
             if (app.isSelected) enabledCount++;
+            if ("com.termux".equals(app.packageName)) {
+                hasTermux = true;
+            }
         }
 
         String filterText = "";
@@ -272,9 +308,10 @@ public class AppSelectionActivity extends AppCompatActivity {
         }
 
         String searchText = searchQuery.isEmpty() ? "" : " (search: " + searchQuery + ")";
+        String termuxStatus = hasTermux ? " | Termux: ✓" : " | Termux: ✗";
 
-        statsTextView.setText(String.format("Total: %d | Showing: %d%s | Selected: %d | Filter: %s",
-                totalCount, filteredCount, searchText, enabledCount, filterText));
+        statsTextView.setText(String.format("Total: %d | Showing: %d%s | Selected: %d | Filter: %s%s",
+                totalCount, filteredCount, searchText, enabledCount, filterText, termuxStatus));
     }
 
     private void showSelectedAppsInfo() {
