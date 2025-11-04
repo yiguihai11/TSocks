@@ -93,7 +93,7 @@ public class AppSelectionActivity extends AppCompatActivity {
             // 使用getInstalledPackages获取包含权限信息的包列表，适配 API 33+
             List<PackageInfo> packages;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
-                packages = pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()));
+                packages = pm.getInstalledPackages(PackageManager.PackageInfoFlags.of((long) PackageManager.GET_PERMISSIONS));
                 Log.i(TAG, "使用新版 PackageManager API (API 33+) 获取应用列表");
             } else {
                 packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
