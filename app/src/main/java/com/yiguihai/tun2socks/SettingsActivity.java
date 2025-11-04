@@ -162,8 +162,12 @@ public class SettingsActivity extends AppCompatActivity {
     private void handleProtocolChange(String protocol) {
         // Enable/disable authentication fields based on protocol
         boolean needsAuth = protocol.equals("SOCKS5") || protocol.equals("HTTP");
+        boolean needsServer = !"Direct".equals(protocol) && !"Reject".equals(protocol);
+
         usernameEditText.setEnabled(needsAuth);
         passwordEditText.setEnabled(needsAuth);
+        serverEditText.setEnabled(needsServer);
+        portEditText.setEnabled(needsServer);
 
         // Set default ports for common protocols
         if (portEditText.getText().toString().isEmpty()) {
@@ -180,16 +184,37 @@ public class SettingsActivity extends AppCompatActivity {
                 case "Shadowsocks":
                     portEditText.setText("8388");
                     break;
+                case "Relay":
+                    portEditText.setText("8080");
+                    break;
+                default:
+                    // Direct and Reject don't need server/port
+                    break;
             }
         }
 
-        // Show protocol-specific hints using TextInputLayout to avoid overlap
+        // Show protocol-specific hints and descriptions
         switch (protocol) {
-            case "Shadowsocks":
-                serverInputLayout.setHint("Shadowsocks server (format: server:port:method:password)");
+            case "SOCKS5":
+                serverInputLayout.setHint("SOCKS5 proxy server (supports username/password auth)");
                 break;
-            default:
-                serverInputLayout.setHint("Server address or IP");
+            case "HTTP":
+                serverInputLayout.setHint("HTTP proxy server (must support CONNECT method)");
+                break;
+            case "SOCKS4":
+                serverInputLayout.setHint("SOCKS4 proxy server (supports USERID auth only)");
+                break;
+            case "Shadowsocks":
+                serverInputLayout.setHint("Shadowsocks server (format: ss://method:password@host:port)");
+                break;
+            case "Relay":
+                serverInputLayout.setHint("Relay proxy server (supports UDP/TCP relay)");
+                break;
+            case "Direct":
+                serverInputLayout.setHint("Direct connection (no proxy)");
+                break;
+            case "Reject":
+                serverInputLayout.setHint("Reject all connections (block mode)");
                 break;
         }
     }

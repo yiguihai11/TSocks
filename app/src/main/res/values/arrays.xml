@@ -6,6 +6,9 @@
         <item>HTTP</item>
         <item>SOCKS4</item>
         <item>Shadowsocks</item>
+        <item>Relay</item>
+        <item>Direct</item>
+        <item>Reject</item>
     </string-array>
 
     <!-- Proxy Protocol Options -->
