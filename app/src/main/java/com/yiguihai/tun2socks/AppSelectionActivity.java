@@ -69,10 +69,11 @@ public class AppSelectionActivity extends AppCompatActivity {
         // Set up RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         appAdapter = new AppAdapter(filteredAppList);
+        appAdapter.setOnAppSelectedListener(this::onAppSelected); // Set up real-time save listener
         recyclerView.setAdapter(appAdapter);
 
         // Set up listeners
-        saveButton.setOnClickListener(v -> saveSelection());
+        saveButton.setOnClickListener(v -> showSelectedAppsInfo()); // Change save function
         setupSearchListener();
         setupFilterListeners();
 
@@ -143,6 +144,25 @@ public class AppSelectionActivity extends AppCompatActivity {
         return false;
     }
 
+    // Real-time save when app is selected/deselected
+    private void onAppSelected(AppInfo app, boolean isSelected) {
+        saveAppSelection();
+        updateStats(); // Update statistics immediately
+    }
+
+    private void saveAppSelection() {
+        Set<String> selectedApps = new HashSet<>();
+        for (AppInfo appInfo : appList) {
+            if (appInfo.isSelected) {
+                selectedApps.add(appInfo.packageName);
+            }
+        }
+
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+        editor.putStringSet(PREF_SELECTED_APPS, selectedApps);
+        editor.apply();
+    }
+
     
     private void setupSearchListener() {
         searchEditText.addTextChangedListener(new TextWatcher() {
@@ -161,14 +181,27 @@ public class AppSelectionActivity extends AppCompatActivity {
     }
 
     private void setupFilterListeners() {
-        chipGroupFilter.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.chip_all_apps) {
-                currentFilter = "all";
-            } else if (checkedId == R.id.chip_user_apps) {
-                currentFilter = "user";
-            } else if (checkedId == R.id.chip_system_apps) {
-                currentFilter = "system";
-            }
+        chipAllApps.setOnClickListener(v -> {
+            currentFilter = "all";
+            chipAllApps.setChecked(true);
+            chipUserApps.setChecked(false);
+            chipSystemApps.setChecked(false);
+            updateFilteredApps();
+        });
+
+        chipUserApps.setOnClickListener(v -> {
+            currentFilter = "user";
+            chipAllApps.setChecked(false);
+            chipUserApps.setChecked(true);
+            chipSystemApps.setChecked(false);
+            updateFilteredApps();
+        });
+
+        chipSystemApps.setOnClickListener(v -> {
+            currentFilter = "system";
+            chipAllApps.setChecked(false);
+            chipUserApps.setChecked(false);
+            chipSystemApps.setChecked(true);
             updateFilteredApps();
         });
     }
@@ -226,7 +259,7 @@ public class AppSelectionActivity extends AppCompatActivity {
                 totalCount, filteredCount, searchText, enabledCount, filterText));
     }
 
-    private void saveSelection() {
+    private void showSelectedAppsInfo() {
         Set<String> selectedApps = new HashSet<>();
         for (AppInfo appInfo : appList) {
             if (appInfo.isSelected) {
@@ -234,11 +267,10 @@ public class AppSelectionActivity extends AppCompatActivity {
             }
         }
 
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
-        editor.putStringSet(PREF_SELECTED_APPS, selectedApps);
-        editor.apply();
-
-        Toast.makeText(this, "Selection saved (" + selectedApps.size() + " apps)", Toast.LENGTH_SHORT).show();
-        finish(); // Close the activity
+        if (selectedApps.isEmpty()) {
+            Toast.makeText(this, "No apps selected for VPN", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, selectedApps.size() + " apps selected for VPN", Toast.LENGTH_SHORT).show();
+        }
     }
 }

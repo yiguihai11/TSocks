@@ -16,9 +16,18 @@ import java.util.List;
 public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 
     private final List<AppInfo> appList;
+    private OnAppSelectedListener listener;
+
+    public interface OnAppSelectedListener {
+        void onAppSelected(AppInfo app, boolean isSelected);
+    }
 
     public AppAdapter(List<AppInfo> appList) {
         this.appList = appList;
+    }
+
+    public void setOnAppSelectedListener(OnAppSelectedListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -41,6 +50,9 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
 
         holder.appSelected.setOnCheckedChangeListener((buttonView, isChecked) -> {
             appInfo.isSelected = isChecked;
+            if (listener != null) {
+                listener.onAppSelected(appInfo, isChecked);
+            }
         });
     }
 
