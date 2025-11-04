@@ -36,10 +36,15 @@ jobs:
 
     - name: Download and set up Android NDK
       run: |
-        sudo apt-get update -y
-        sudo apt-get install -y wget unzip
-        wget https://dl.google.com/android/repository/android-ndk-r27d-linux.zip
-        unzip -q android-ndk-r27d-linux.zip
+        if [ ! -d "android-ndk-r27d" ]; then
+          echo "NDK directory not found, downloading..."
+          sudo apt-get update -y
+          sudo apt-get install -y wget unzip
+          wget https://dl.google.com/android/repository/android-ndk-r27d-linux.zip
+          unzip -o -q android-ndk-r27d-linux.zip
+        else
+          echo "NDK directory found from cache, skipping download"
+        fi
         echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r27d" >> $GITHUB_ENV
 
     - name: Grant execute permission to gradlew
