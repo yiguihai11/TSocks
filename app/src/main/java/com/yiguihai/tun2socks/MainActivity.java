@@ -243,6 +243,9 @@ public class MainActivity extends AppCompatActivity {
     private void checkNativeLibrary() {
         addLog("Checking native library availability...");
 
+        // Check AndroidManifest.xml configuration
+        checkManifestConfiguration();
+
         // Check if library files exist in the expected directories
         checkLibraryFiles();
 
@@ -277,7 +280,11 @@ public class MainActivity extends AppCompatActivity {
             addLog("SOLUTION:");
             addLog("  1. Build the Go library: gradle buildGoLibs");
             addLog("  2. Clean and rebuild: gradle clean assembleDebug");
-            addLog("  3. Check if useLegacyPackaging is needed in build.gradle");
+            addLog("  3. Check AndroidManifest.xml:");
+            addLog("     - Add android:extractNativeLibs=\"true\" to <application>");
+            addLog("     - Add <uses-native-library android:name=\"libtun2socks.so\" android:required=\"true\" />");
+            addLog("  4. Check build.gradle has useLegacyPackaging = true");
+            addLog("  5. Verify library files are in src/main/jniLibs/<abi>/ directories");
 
             showToast("Native library loading failed");
 
@@ -296,6 +303,37 @@ public class MainActivity extends AppCompatActivity {
             addLog("  Error message: " + e.getMessage());
             addLog("  Stack trace: " + e.getStackTrace()[0].toString());
             showToast("Unexpected error loading library");
+        }
+    }
+
+    private void checkManifestConfiguration() {
+        addLog("Checking AndroidManifest.xml library configuration...");
+
+        try {
+            // Check if extractNativeLibs is enabled
+            ApplicationInfo appInfo = getApplicationInfo();
+            boolean extractNativeLibs = (appInfo.flags & ApplicationInfo.FLAG_EXTRACT_NATIVE_LIBS) != 0;
+            addLog("extractNativeLibs: " + (extractNativeLibs ? "ENABLED ✓" : "DISABLED ⚠"));
+
+            if (!extractNativeLibs) {
+                addLog("WARNING: extractNativeLibs is disabled in AndroidManifest.xml");
+                addLog("This may cause library loading issues on some devices");
+                addLog("Consider adding android:extractNativeLibs=\"true\" to <application>");
+            }
+
+            // Check application info for native library dir
+            String nativeLibraryDir = appInfo.nativeLibraryDir;
+            addLog("Native library directory from manifest: " + nativeLibraryDir);
+
+            // Check if we have library permissions
+            if ((appInfo.flags & ApplicationInfo.FLAG_HAS_CODE) != 0) {
+                addLog("Application has native code support: YES ✓");
+            } else {
+                addLog("Application has native code support: NO ⚠");
+            }
+
+        } catch (Exception e) {
+            addLog("ERROR: Failed to check manifest configuration: " + e.getMessage());
         }
     }
 

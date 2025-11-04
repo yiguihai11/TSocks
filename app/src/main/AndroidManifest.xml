@@ -13,7 +13,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TSocks"
+        android:extractNativeLibs="true"
         tools:targetApi="31">
+
+        <!-- Declare native library usage -->
+        <uses-native-library
+            android:name="libtun2socks.so"
+            android:required="true" />
 
         <activity
             android:name=".MainActivity"
