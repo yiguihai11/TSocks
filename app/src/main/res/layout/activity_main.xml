@@ -396,7 +396,7 @@
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?attr/colorOnSurfaceVariant" />
 
-                    </ScrollView>
+                    </androidx.core.widget.NestedScrollView>
 
                 </LinearLayout>
 
