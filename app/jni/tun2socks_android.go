@@ -301,15 +301,15 @@ func Stop() {
 	log.Println("Tun2Socks engine stopped")
 }
 
-//export getStats
-func getStats() C.long {
+//export GetStats
+func GetStats() C.long {
 	// Return a single stat for now - bytes uploaded
 	// Using C.long which is a standard CGo type
 	return 1024
 }
 
-//export setTimeout
-func setTimeout(timeoutMs C.int) {
+//export SetTimeout
+func SetTimeout(timeoutMs C.int) {
 	log.Printf("Timeout set to %d ms", timeoutMs)
 	// Implementation would set the timeout in the engine configuration
 }
