@@ -102,8 +102,9 @@ public class AppSelectionActivity extends AppCompatActivity {
                     continue;
                 }
 
-                // Check if app has internet permission (like your Compose code)
-                if (hasInternetPermission(pm, packageName)) {
+                // Include all apps (except system critical apps that might cause issues)
+                // Remove the internet permission filter to show all user-installed apps
+                if (shouldIncludeApp(packageInfo)) {
                     String appName = packageInfo.loadLabel(pm).toString();
                     boolean isSelected = selectedApps.contains(packageName);
                     boolean isSystemApp = (packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
@@ -128,20 +129,12 @@ public class AppSelectionActivity extends AppCompatActivity {
         }).start();
     }
 
-    private boolean hasInternetPermission(PackageManager pm, String packageName) {
-        try {
-            PackageInfo packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
-            if (packageInfo.requestedPermissions != null) {
-                for (String permission : packageInfo.requestedPermissions) {
-                    if (Manifest.permission.INTERNET.equals(permission)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            // Package not found, skip it
-        }
-        return false;
+    private boolean shouldIncludeApp(ApplicationInfo packageInfo) {
+        String packageName = packageInfo.packageName;
+
+        // Only exclude our own package from app selection
+        // Include all other apps (both user and system apps)
+        return !packageName.equals(getPackageName());
     }
 
     // Real-time save when app is selected/deselected
