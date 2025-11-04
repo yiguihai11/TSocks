@@ -183,13 +183,22 @@ public class MainActivity extends AppCompatActivity {
             if (logQueue.size() >= MAX_LOG_LINES) {
                 logQueue.poll();
             }
-            logQueue.add(message);
+
+            // Add line number for debugging log truncation
+            String numberedMessage = "[" + (logQueue.size() + 1) + "] " + message;
+            logQueue.add(numberedMessage);
 
             StringBuilder logText = new StringBuilder();
             for (String log : logQueue) {
                 logText.append(log).append("\n");
             }
             logsText.setText(logText.toString());
+
+            // Auto-scroll to bottom to see latest logs
+            ScrollView scrollView = findViewById(R.id.scrollView_logs);
+            if (scrollView != null) {
+                scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
+            }
         });
     }
 
@@ -253,10 +262,14 @@ public class MainActivity extends AppCompatActivity {
         // Try to load the library directly
         try {
             addLog("Attempting to load library: tun2socks");
+            addLog("Current library path: " + System.getProperty("java.library.path"));
+
+            // First try standard library loading
             System.loadLibrary("tun2socks");
             addLog("SUCCESS: Native library loaded successfully");
 
             // Test if we can call a native method
+            addLog("Testing native method call...");
             int stats = Tun2Socks.getStats();
             addLog("SUCCESS: Native method call successful, stats: " + stats);
 
@@ -265,6 +278,24 @@ public class MainActivity extends AppCompatActivity {
             addLog("Library loading failed with details:");
             addLog("  Error type: " + e.getClass().getSimpleName());
             addLog("  Error message: " + e.getMessage());
+
+            // Try alternative loading methods
+            addLog("Trying alternative loading methods...");
+
+            try {
+                String jniLibsPath = getApplicationInfo().nativeLibraryDir;
+                String libPath = jniLibsPath + "/libtun2socks.so";
+                addLog("Attempting to load with absolute path: " + libPath);
+                System.load(libPath);
+                addLog("SUCCESS: Native library loaded with absolute path");
+
+                // Test method call
+                int stats = Tun2Socks.getStats();
+                addLog("SUCCESS: Native method call successful, stats: " + stats);
+
+            } catch (Exception e2) {
+                addLog("Alternative loading also failed: " + e2.getMessage());
+            }
 
             if (e.getMessage() != null) {
                 if (e.getMessage().contains("no suitable implementation found")) {
@@ -345,6 +376,7 @@ public class MainActivity extends AppCompatActivity {
         // Check main jniLibs directory
         String jniLibsPath = getApplicationInfo().nativeLibraryDir;
         addLog("Native library directory: " + jniLibsPath);
+        addLog("Native library directory length: " + jniLibsPath.length());
 
         try {
             java.io.File libDir = new java.io.File(jniLibsPath);
