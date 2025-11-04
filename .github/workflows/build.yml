@@ -77,32 +77,30 @@ jobs:
 
     - name: Create architecture info file
       run: |
-        cat > upload/README.md << 'EOF'
-# TSocks APK Downloads
-
-## Choose the right APK version
-
-### Mobile Devices
-- **ARM64 (recommended)**: `arm64/` - Modern Android devices (2018+)
-- **ARM32**: `arm32/` - Older Android devices (pre-2018)
-
-### Emulators/PC
-- **x64**: `x64/` - 64-bit emulators or PC
-- **x86**: `x86/` - 32-bit emulators or PC
-
-## How to choose?
-1. Not sure about device architecture? Choose **ARM64** (best compatibility)
-2. Check device settings -> About phone -> Processor architecture
-3. Use command: `adb shell getprop ro.product.cpu.abi`
-
-## File details
-- Each APK contains native libraries for corresponding architecture only
-- File size: ~3-4MB per APK
-- Supports Android 7.0+ (API 26+)
-
-Build: ${{ github.sha }}
-Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-EOF
+        echo '# TSocks APK Downloads' > upload/README.md
+        echo '' >> upload/README.md
+        echo '## Choose the right APK version' >> upload/README.md
+        echo '' >> upload/README.md
+        echo '### Mobile Devices' >> upload/README.md
+        echo '- ARM64 (recommended): arm64/ - Modern Android devices (2018+)' >> upload/README.md
+        echo '- ARM32: arm32/ - Older Android devices (pre-2018)' >> upload/README.md
+        echo '' >> upload/README.md
+        echo '### Emulators/PC' >> upload/README.md
+        echo '- x64: x64/ - 64-bit emulators or PC' >> upload/README.md
+        echo '- x86: x86/ - 32-bit emulators or PC' >> upload/README.md
+        echo '' >> upload/README.md
+        echo '## How to choose?' >> upload/README.md
+        echo '1. Not sure about device architecture? Choose ARM64 (best compatibility)' >> upload/README.md
+        echo '2. Check device settings to About phone to Processor architecture' >> upload/README.md
+        echo '3. Use command: adb shell getprop ro.product.cpu.abi' >> upload/README.md
+        echo '' >> upload/README.md
+        echo '## File details' >> upload/README.md
+        echo '- Each APK contains native libraries for corresponding architecture only' >> upload/README.md
+        echo '- File size: ~3-4MB per APK' >> upload/README.md
+        echo '- Supports Android 7.0+ (API 26+)' >> upload/README.md
+        echo '' >> upload/README.md
+        echo "Build: ${{ github.sha }}" >> upload/README.md
+        echo "Date: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> upload/README.md
 
     - name: Upload ARM64 APK (most devices)
       uses: actions/upload-artifact@v4
