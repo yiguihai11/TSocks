@@ -12,13 +12,29 @@
         android:layout_height="40dp"
         android:contentDescription="App Icon" />
 
-    <TextView
-        android:id="@+id/text_view_app_name"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="8dp"
-        android:text="Application Name" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/text_view_app_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Application Name"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_view_app_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Package Name | UID: 10000 | System App"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
+    </LinearLayout>
 
     <CheckBox
         android:id="@+id/checkbox_app_selected"

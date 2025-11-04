@@ -9,20 +9,20 @@ public class AppInfo {
     public final Drawable icon;
     public boolean isSelected;
     public final boolean isSystemApp;
+    public final int uid; // Added UID field
 
+    // Constructor for backward compatibility, calls the main constructor
     public AppInfo(String appName, String packageName, Drawable icon, boolean isSelected) {
-        this.appName = appName;
-        this.packageName = packageName;
-        this.icon = icon;
-        this.isSelected = isSelected;
-        this.isSystemApp = false; // Default for backward compatibility
+        this(appName, packageName, icon, isSelected, false, 0); // Default isSystemApp to false, uid to 0
     }
 
-    public AppInfo(String appName, String packageName, Drawable icon, boolean isSelected, boolean isSystemApp) {
+    // Main constructor with all fields, including uid
+    public AppInfo(String appName, String packageName, Drawable icon, boolean isSelected, boolean isSystemApp, int uid) {
         this.appName = appName;
         this.packageName = packageName;
         this.icon = icon;
         this.isSelected = isSelected;
         this.isSystemApp = isSystemApp;
+        this.uid = uid;
     }
 }

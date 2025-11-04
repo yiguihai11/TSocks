@@ -105,19 +105,24 @@ public class AppSelectionActivity extends AppCompatActivity {
                 }
 
                 // Check if app has internet permission - only show apps that can actually use network
-                if (hasInternetPermission(packageInfo)) {
+                // Removed this check to show all apps, as requested by the user.
+                // if (hasInternetPermission(packageInfo)) {
                     ApplicationInfo appInfo = packageInfo.applicationInfo;
+                    // Filter out disabled applications
+                    if (!appInfo.enabled) {
+                        continue;
+                    }
                     String appName = appInfo.loadLabel(pm).toString();
                     boolean isSelected = selectedApps.contains(packageName);
                     boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
 
                     try {
-                        appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp));
+                        appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp, appInfo.uid));
                     } catch (Exception e) {
                         // 如果图标加载失败，跳过此应用
                         continue;
                     }
-                }
+                // }
             }
 
             // Sort apps: enabled apps first, then by name

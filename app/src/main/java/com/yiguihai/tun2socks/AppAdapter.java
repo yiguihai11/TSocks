@@ -44,6 +44,13 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         holder.appIcon.setImageDrawable(appInfo.icon);
         holder.appSelected.setChecked(appInfo.isSelected);
 
+        // Set app details text
+        String details = String.format("%s | UID: %d | %s",
+                appInfo.packageName,
+                appInfo.uid,
+                appInfo.isSystemApp ? "系统应用" : "用户应用");
+        holder.appDetails.setText(details);
+
         holder.itemView.setOnClickListener(v -> {
             holder.appSelected.toggle();
         });
@@ -64,12 +71,14 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
     static class AppViewHolder extends RecyclerView.ViewHolder {
         ImageView appIcon;
         TextView appName;
+        TextView appDetails; // Added
         CheckBox appSelected;
 
         public AppViewHolder(@NonNull View itemView) {
             super(itemView);
             appIcon = itemView.findViewById(R.id.image_view_app_icon);
             appName = itemView.findViewById(R.id.text_view_app_name);
+            appDetails = itemView.findViewById(R.id.text_view_app_details); // Initialized
             appSelected = itemView.findViewById(R.id.checkbox_app_selected);
         }
     }
