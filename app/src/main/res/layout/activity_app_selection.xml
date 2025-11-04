@@ -108,14 +108,4 @@
         android:scrollbars="vertical"
         android:fadeScrollbars="false" />
 
-    <!-- Selected Apps Info Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_save_app_selection"
-        style="@style/Widget.Material3.Button.UnelevatedButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Show Selected Apps"
-        app:icon="@android:drawable/ic_dialog_info" />
-
-</LinearLayout>
+    </LinearLayout>

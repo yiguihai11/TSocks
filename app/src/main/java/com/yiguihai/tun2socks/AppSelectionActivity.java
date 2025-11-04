@@ -60,7 +60,6 @@ public class AppSelectionActivity extends AppCompatActivity {
         // Initialize UI components
         recyclerView = findViewById(R.id.recycler_view_apps);
         progressBar = findViewById(R.id.progress_bar_loading_apps);
-        Button saveButton = findViewById(R.id.button_save_app_selection);
         searchEditText = findViewById(R.id.edit_text_search);
         chipGroupFilter = findViewById(R.id.chip_group_filter);
         statsTextView = findViewById(R.id.text_stats);
@@ -76,7 +75,6 @@ public class AppSelectionActivity extends AppCompatActivity {
         recyclerView.setAdapter(appAdapter);
 
         // Set up listeners
-        saveButton.setOnClickListener(v -> showSelectedAppsInfo()); // Change save function
         setupSearchListener();
         setupFilterListeners();
 
@@ -287,20 +285,5 @@ public class AppSelectionActivity extends AppCompatActivity {
 
         statsTextView.setText(String.format("Total: %d | Showing: %d%s | Selected: %d | Filter: %s",
                 totalCount, filteredCount, searchText, enabledCount, filterText));
-    }
-
-    private void showSelectedAppsInfo() {
-        Set<String> selectedApps = new HashSet<>();
-        for (AppInfo appInfo : appList) {
-            if (appInfo.isSelected) {
-                selectedApps.add(appInfo.packageName);
-            }
-        }
-
-        if (selectedApps.isEmpty()) {
-            Toast.makeText(this, "No apps selected for VPN", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, selectedApps.size() + " apps selected for VPN", Toast.LENGTH_SHORT).show();
-        }
     }
 }
