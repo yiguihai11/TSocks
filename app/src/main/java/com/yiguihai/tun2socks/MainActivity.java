@@ -313,9 +313,9 @@ public class MainActivity extends AppCompatActivity {
             addLog("  1. Build the Go library: gradle buildGoLibs");
             addLog("  2. Clean and rebuild: gradle clean assembleDebug");
             addLog("  3. Check AndroidManifest.xml:");
-            addLog("     - Add android:extractNativeLibs=\"true\" to <application>");
-            addLog("     - Remove <uses-native-library> declaration (not needed for private libs)");
-            addLog("  4. Check build.gradle has useLegacyPackaging = true");
+            addLog("     - Use android:extractNativeLibs=\"false\" (modern)");
+            addLog("     - Remove <uses-native-library> declaration");
+            addLog("  4. Check build.gradle has useLegacyPackaging = false (modern)");
             addLog("  5. Verify library files are in src/main/jniLibs/<abi>/ directories");
 
             showToast("Native library loading failed");
@@ -348,10 +348,10 @@ public class MainActivity extends AppCompatActivity {
             addLog("extractNativeLibs: " + (extractNativeLibs ? "ENABLED ✓" : "DISABLED ⚠"));
 
             if (extractNativeLibs) {
-                addLog("extractNativeLibs is ENABLED - libraries are extracted to filesystem");
+                addLog("extractNativeLibs is ENABLED - libraries extracted to filesystem (legacy)");
             } else {
-                addLog("extractNativeLibs is DISABLED - libraries loaded from APK (recommended for modern Android)");
-                addLog("This is the recommended setting with useLegacyPackaging");
+                addLog("extractNativeLibs is DISABLED - libraries loaded from APK (modern)");
+                addLog("This is the recommended setting for Android 12+");
             }
 
             // Check application info for native library dir

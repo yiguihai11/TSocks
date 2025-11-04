@@ -32,12 +32,12 @@ android {
         }
     }
 
-    // Use legacy packaging to avoid extraction issues with native libraries
+    // Modern packaging options for native libraries
     packagingOptions {
-        // Use legacy external native libraries packaging
-        // This can help with library loading issues on some Android versions
         jniLibs {
-            useLegacyPackaging = true
+            // Modern Android doesn't need useLegacyPackaging
+            // Keep libraries compressed in APK for better storage efficiency
+            useLegacyPackaging = false
         }
     }
 
