@@ -194,10 +194,15 @@ public class MainActivity extends AppCompatActivity {
             }
             logsText.setText(logText.toString());
 
-            // Auto-scroll to bottom to see latest logs
+            // Auto-scroll to bottom, but only if the user is already at the bottom.
             ScrollView scrollView = findViewById(R.id.scrollView_logs);
             if (scrollView != null) {
-                scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
+                View view = (View) scrollView.getChildAt(0);
+                // Calculate the scrolldelta, if 0, we are at the bottom
+                int scrollDelta = view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY());
+                if (scrollDelta == 0) {
+                    scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
+                }
             }
         });
     }
