@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Update to match Material 3 layout IDs
         TextView statusText = findViewById(R.id.status_text);
-        TextView statusIndicator = findViewById(R.id.status_indicator);
+        MaterialCardView statusIndicator = findViewById(R.id.status_indicator);
         MaterialButton connectButton = findViewById(R.id.connect_button);
         TextView uploadText = findViewById(R.id.upload_text);
         TextView downloadText = findViewById(R.id.download_text);
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
         // Update Material 3 UI components
         TextView statusText = findViewById(R.id.status_text);
         MaterialButton connectButton = findViewById(R.id.connect_button);
-        TextView statusIndicator = findViewById(R.id.status_indicator);
+        MaterialCardView statusIndicator = findViewById(R.id.status_indicator);
 
         if (statusText != null) {
             statusText.setText("Connected");
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
             connectButton.setText("Disconnect");
         }
         if (statusIndicator != null) {
-            statusIndicator.setBackgroundColor(getResources().getColor(R.color.status_connected, null));
+            statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.status_connected, null));
         }
     }
 
@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         // Update Material 3 UI components
         TextView statusText = findViewById(R.id.status_text);
         MaterialButton connectButton = findViewById(R.id.connect_button);
-        TextView statusIndicator = findViewById(R.id.status_indicator);
+        MaterialCardView statusIndicator = findViewById(R.id.status_indicator);
 
         if (statusText != null) {
             statusText.setText("Disconnected");
@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
             connectButton.setText("Connect");
         }
         if (statusIndicator != null) {
-            statusIndicator.setBackgroundColor(getResources().getColor(R.color.status_disconnected, null));
+            statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.status_disconnected, null));
         }
     }
 
