@@ -314,8 +314,8 @@ func setTimeout(timeoutMs C.int) {
 	// Implementation would set the timeout in the engine configuration
 }
 
-// main function with Go 1.25 initialization patterns
-func main() {
+// Initialization function for JNI library
+func init() {
 	// Enhanced logging setup
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("Tun2Socks JNI library initialized")
