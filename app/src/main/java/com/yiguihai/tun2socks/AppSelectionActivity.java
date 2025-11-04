@@ -139,6 +139,7 @@ public class AppSelectionActivity extends AppCompatActivity {
                         }
                     }
                 }
+            }
 
             // Sort apps: enabled apps first, then by name
             Collections.sort(appList, (o1, o2) -> {
