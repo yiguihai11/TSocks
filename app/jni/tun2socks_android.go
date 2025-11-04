@@ -321,6 +321,13 @@ func testJNI() C.long {
 	return 12345
 }
 
+// Add a simple function with standard naming to test JNI
+//export Java_com_yiguihai_tun2socks_Tun2Socks_testJNI2
+func Java_com_yiguihai_tun2socks_Tun2Socks_testJNI2() C.long {
+	log.Printf("Direct JNI function called - testing bypass")
+	return 54321
+}
+
 // Empty main function required for CGO shared library build
 func main() {
 	// Shared library build requires main function, even if empty

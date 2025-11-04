@@ -278,14 +278,18 @@ public class MainActivity extends AppCompatActivity {
                 int testResult = Tun2Socks.testJNI();
                 addLog("SUCCESS: testJNI() worked, result: " + testResult);
 
+                addLog("Testing direct JNI method (bypass)...");
+                int test2Result = Tun2Socks.testJNI2();
+                addLog("SUCCESS: testJNI2() worked, result: " + test2Result);
+
                 addLog("Now testing getStats()...");
                 int stats = Tun2Socks.getStats();
                 addLog("SUCCESS: getStats() worked, stats: " + stats);
 
             } catch (UnsatisfiedLinkError e) {
                 addLog("JNI Method Error: " + e.getMessage());
-                addLog("This suggests the library was built with wrong function names");
-                addLog("Or the library may not contain the exported symbols");
+                addLog("Expected symbols: Java_com_yiguihai_tun2socks_Tun2Socks_*");
+                addLog("This suggests CGO export failed or symbol naming issue");
                 addLog("Try: gradle buildGoLibs clean assembleDebug");
                 throw e;
             }

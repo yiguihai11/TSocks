@@ -131,6 +131,11 @@ public class Tun2Socks {
      */
     public static native int testJNI();
 
+    /**
+     * Direct JNI method for testing bypass.
+     */
+    public static native int testJNI2();
+
     static {
         // The name "tun2socks" must match the name of the generated .so file (libtun2socks.so)
         System.loadLibrary("tun2socks");
