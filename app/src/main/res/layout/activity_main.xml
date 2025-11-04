@@ -96,6 +96,35 @@
 
                     </LinearLayout>
 
+                    <!-- Current Configuration Display -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Current Configuration"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/config_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="?attr/colorSurfaceVariant"
+                            android:padding="12dp"
+                            android:text="Not configured - Open Settings to configure proxy"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:fontFamily="monospace" />
+
+                    </LinearLayout>
+
                     <!-- Stats Section -->
                     <LinearLayout
                         android:layout_width="match_parent"

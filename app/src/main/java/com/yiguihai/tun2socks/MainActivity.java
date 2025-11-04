@@ -38,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
     private Button startVpnButton;
     private Button stopVpnButton;
 
+    // Configuration display
+    private TextView configText;
+
     private final Queue<String> logQueue = new LinkedList<>();
     private static final int MAX_LOG_LINES = 100; // Increased for better context
 
@@ -76,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         TextView logsText = findViewById(R.id.logs_text);
         Button clearLogsButton = findViewById(R.id.clear_logs_button);
         FloatingActionButton fab = findViewById(R.id.fab);
+        configText = findViewById(R.id.config_text);
 
         // Set up click listeners
         connectButton.setOnClickListener(v -> {
@@ -123,7 +127,20 @@ public class MainActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(logReceiver, new IntentFilter(TSocksVpnService.ACTION_LOG_BROADCAST));
 
+        // Check if native library is available
+        try {
+            // Test if the library can be loaded
+            Tun2Socks.getStats();
+            addLog("Native library loaded successfully");
+        } catch (UnsatisfiedLinkError e) {
+            addLog("ERROR: Native library not found!");
+            addLog("Please build the app with: gradle buildGoLibs assembleDebug");
+            addLog("The VPN function will not work without the native library.");
+            showToast("Native library missing - VPN unavailable");
+        }
+
         addLog("Welcome to TSocks!");
+        updateConfigurationDisplay();
         updateUiForVpnStopped();
     }
 
@@ -323,5 +340,48 @@ public class MainActivity extends AppCompatActivity {
         } else {
             showToast("Connect to VPN to view statistics");
         }
+    }
+
+    private void updateConfigurationDisplay() {
+        if (configText == null) return;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String protocol = prefs.getString(SettingsActivity.PREF_PROXY_PROTOCOL, "SOCKS5");
+        String server = prefs.getString(SettingsActivity.PREF_PROXY_SERVER, "");
+        String port = prefs.getString(SettingsActivity.PREF_PROXY_PORT, "");
+        String username = prefs.getString(SettingsActivity.PREF_PROXY_USERNAME, "");
+        String ipv4Enabled = prefs.getBoolean(SettingsActivity.PREF_IPV4_ENABLED, true) ? "Enabled" : "Disabled";
+        String ipv6Enabled = prefs.getBoolean(SettingsActivity.PREF_IPV6_ENABLED, false) ? "Enabled" : "Disabled";
+        String dnsV4 = prefs.getString(SettingsActivity.PREF_DNS_V4, "8.8.8.8");
+        String dnsV6 = prefs.getString(SettingsActivity.PREF_DNS_V6, "2001:4860:4860::8888");
+
+        StringBuilder config = new StringBuilder();
+        config.append("Protocol: ").append(protocol).append("\n");
+
+        if (!server.isEmpty() && !port.isEmpty()) {
+            config.append("Server: ").append(server).append(":").append(port).append("\n");
+            if (!username.isEmpty()) {
+                config.append("Username: ").append(username).append("\n");
+            }
+        } else {
+            config.append("Server: Not configured\n");
+        }
+
+        config.append("IPv4: ").append(ipv4Enabled).append(" | ");
+        config.append("IPv6: ").append(ipv6Enabled).append("\n");
+        config.append("DNS: ").append(dnsV4);
+        if (ipv6Enabled.equals("Enabled")) {
+            config.append(", ").append(dnsV6);
+        }
+
+        configText.setText(config.toString());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Update configuration display when returning from settings
+        updateConfigurationDisplay();
     }
 }
