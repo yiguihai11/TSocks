@@ -6,8 +6,10 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -31,6 +33,7 @@ import java.util.Set;
 
 public class AppSelectionActivity extends AppCompatActivity {
 
+    private static final String TAG = "AppSelectionActivity";
     public static final String PREF_SELECTED_APPS = "pref_selected_apps";
 
     private RecyclerView recyclerView;
@@ -87,23 +90,17 @@ public class AppSelectionActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         new Thread(() -> {
             PackageManager pm = getPackageManager();
-            // 使用getInstalledPackages获取包含权限信息的包列表
-            List<PackageInfo> packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
-
-            // 立即检查 com.termux 是否在原始包列表中（过滤前）
-            boolean termuxExistsInPackages = false;
-            PackageInfo termuxPackageInfo = null;
-            for (PackageInfo pkg : packages) {
-                if ("com.termux".equals(pkg.packageName)) {
-                    termuxExistsInPackages = true;
-                    termuxPackageInfo = pkg;
-                    break;
-                }
+            // 使用getInstalledPackages获取包含权限信息的包列表，适配 API 33+
+            List<PackageInfo> packages;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
+                packages = pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()));
+                Log.i(TAG, "使用新版 PackageManager API (API 33+) 获取应用列表");
+            } else {
+                packages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS);
+                Log.i(TAG, "使用旧版 PackageManager API 获取应用列表");
             }
 
-            final boolean foundInOriginalList = termuxExistsInPackages;
-            final PackageInfo foundPackageInfo = termuxPackageInfo;
-
+            
             Set<String> selectedApps = PreferenceManager.getDefaultSharedPreferences(this)
                     .getStringSet(PREF_SELECTED_APPS, new HashSet<>());
 
@@ -118,23 +115,30 @@ public class AppSelectionActivity extends AppCompatActivity {
                     continue;
                 }
 
-                // Show all apps regardless of network permission
-            ApplicationInfo appInfo = packageInfo.applicationInfo;
-            // Filter out disabled applications
-            if (!appInfo.enabled) {
-                continue;
-            }
-            String appName = appInfo.loadLabel(pm).toString();
-            boolean isSelected = selectedApps.contains(packageName);
-            boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                // Check if app has internet permission - only show apps that can actually use network
+                if (hasInternetPermission(packageInfo)) {
+                    ApplicationInfo appInfo = packageInfo.applicationInfo;
+                    // Filter out disabled applications
+                    if (!appInfo.enabled) {
+                        continue;
+                    }
+                    String appName = appInfo.loadLabel(pm).toString();
+                    boolean isSelected = selectedApps.contains(packageName);
+                    boolean isSystemApp = (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
 
-            try {
-                appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp, appInfo.uid));
-            } catch (Exception e) {
-                // 如果图标加载失败，跳过此应用
-                continue;
-            }
-            }
+                    try {
+                        appList.add(new AppInfo(appName, packageName, appInfo.loadIcon(pm), isSelected, isSystemApp, appInfo.uid));
+                    } catch (Exception e) {
+                        // 记录图标加载失败的情况，但不跳过应用（使用默认图标）
+                        Log.w(TAG, "应用 " + packageName + " 图标加载失败: " + e.getMessage());
+                        try {
+                            // 尝试使用默认图标
+                            appList.add(new AppInfo(appName, packageName, null, isSelected, isSystemApp, appInfo.uid));
+                        } catch (Exception fallbackException) {
+                            Log.e(TAG, "应用 " + packageName + " 完全添加失败: " + fallbackException.getMessage());
+                        }
+                    }
+                }
 
             // Sort apps: enabled apps first, then by name
             Collections.sort(appList, (o1, o2) -> {
@@ -144,50 +148,11 @@ public class AppSelectionActivity extends AppCompatActivity {
                 return o1.appName.compareToIgnoreCase(o2.appName); // then by name
             });
 
-            // 查找 com.termux 包名
-            AppInfo termuxApp = null;
-            List<AppInfo> termuxRelatedApps = new ArrayList<>();
-            for (AppInfo app : appList) {
-                if ("com.termux".equals(app.packageName)) {
-                    termuxApp = app;
-                }
-                // 查找所有包含 "termux" 的应用
-                if (app.packageName.toLowerCase().contains("termux") ||
-                    app.appName.toLowerCase().contains("termux")) {
-                    termuxRelatedApps.add(app);
-                }
-            }
-
-            final AppInfo foundTermuxApp = termuxApp;
-
+            
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE);
                 updateFilteredApps();
                 updateStats();
-
-                // 显示查找结果
-                String resultMessage = "";
-                if (foundInOriginalList) {
-                    resultMessage = "✓ 系统包列表中找到 com.termux\n";
-                    if (foundPackageInfo != null && foundPackageInfo.applicationInfo != null) {
-                        boolean isEnabled = foundPackageInfo.applicationInfo.enabled;
-                        resultMessage += "应用状态: " + (isEnabled ? "已启用" : "已禁用") + "\n";
-                        boolean isSystemApp = (foundPackageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
-                        resultMessage += "应用类型: " + (isSystemApp ? "系统应用" : "用户应用") + "\n";
-                        resultMessage += "UID: " + foundPackageInfo.applicationInfo.uid;
-                    }
-                } else {
-                    resultMessage = "✗ 系统包列表中没有 com.termux\n";
-                    resultMessage += "说明应用未安装或系统无法识别";
-                }
-
-                if (foundTermuxApp != null) {
-                    resultMessage += "\n\n✓ 在应用列表中找到: " + foundTermuxApp.appName;
-                } else if (foundInOriginalList) {
-                    resultMessage += "\n\n⚠ 在包列表中找到但被过滤掉了";
-                }
-
-                Toast.makeText(AppSelectionActivity.this, resultMessage, Toast.LENGTH_LONG).show();
             });
         }).start();
     }
@@ -286,13 +251,9 @@ public class AppSelectionActivity extends AppCompatActivity {
         int totalCount = appList.size();
         int filteredCount = filteredAppList.size();
         int enabledCount = 0;
-        boolean hasTermux = false;
 
         for (AppInfo app : appList) {
             if (app.isSelected) enabledCount++;
-            if ("com.termux".equals(app.packageName)) {
-                hasTermux = true;
-            }
         }
 
         String filterText = "";
@@ -308,10 +269,9 @@ public class AppSelectionActivity extends AppCompatActivity {
         }
 
         String searchText = searchQuery.isEmpty() ? "" : " (search: " + searchQuery + ")";
-        String termuxStatus = hasTermux ? " | Termux: ✓" : " | Termux: ✗";
 
-        statsTextView.setText(String.format("Total: %d | Showing: %d%s | Selected: %d | Filter: %s%s",
-                totalCount, filteredCount, searchText, enabledCount, filterText, termuxStatus));
+        statsTextView.setText(String.format("Total: %d | Showing: %d%s | Selected: %d | Filter: %s",
+                totalCount, filteredCount, searchText, enabledCount, filterText));
     }
 
     private void showSelectedAppsInfo() {

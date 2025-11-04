@@ -1,6 +1,7 @@
 
 package com.yiguihai.tun2socks;
 
+import android.content.pm.PackageManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,7 +46,13 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.AppViewHolder> {
         holder.appNumber.setText((position + 1) + ".");
 
         holder.appName.setText(appInfo.appName);
-        holder.appIcon.setImageDrawable(appInfo.icon);
+        // 处理可能的 null 图标
+        if (appInfo.icon != null) {
+            holder.appIcon.setImageDrawable(appInfo.icon);
+        } else {
+            // 使用系统默认应用图标
+            holder.appIcon.setImageDrawable(holder.itemView.getContext().getPackageManager().getDefaultActivityIcon());
+        }
 
         // Remove previous listener to avoid unwanted triggers
         holder.appSelected.setOnCheckedChangeListener(null);
