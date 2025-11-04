@@ -61,11 +61,14 @@ jobs:
         restore-keys: |
           gradle-${{ runner.os }}-
 
+    - name: Clean Gradle cache and build
+      run: gradle clean
+
     - name: Build Go native libraries
-      run: gradle buildGoLibs
+      run: gradle buildGoLibs --no-daemon --no-build-cache
 
     - name: Build Android APK
-      run: gradle assembleDebug
+      run: gradle assembleDebug --no-daemon --no-build-cache
 
     - name: Create upload directories
       run: |
