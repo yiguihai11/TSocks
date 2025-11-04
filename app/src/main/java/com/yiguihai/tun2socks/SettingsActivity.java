@@ -26,6 +26,7 @@ public class SettingsActivity extends AppCompatActivity {
     private EditText usernameEditText;
     private EditText passwordEditText;
     private Button saveButton;
+    private com.google.android.material.textfield.TextInputLayout serverInputLayout;
 
     // Network Configuration UI
     private EditText mtuEditText;
@@ -62,6 +63,7 @@ public class SettingsActivity extends AppCompatActivity {
         // Initialize Proxy Configuration UI
         protocolSpinner = findViewById(R.id.spinner_protocol);
         serverEditText = findViewById(R.id.edit_text_server);
+        serverInputLayout = findViewById(R.id.layout_server);
         portEditText = findViewById(R.id.edit_text_port);
         usernameEditText = findViewById(R.id.edit_text_username);
         passwordEditText = findViewById(R.id.edit_text_password);
@@ -181,13 +183,13 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
-        // Show protocol-specific hints
+        // Show protocol-specific hints using TextInputLayout to avoid overlap
         switch (protocol) {
             case "Shadowsocks":
-                serverEditText.setHint("Shadowsocks server (format: server:port:method:password)");
+                serverInputLayout.setHint("Shadowsocks server (format: server:port:method:password)");
                 break;
             default:
-                serverEditText.setHint("Server address or IP");
+                serverInputLayout.setHint("Server address or IP");
                 break;
         }
     }
