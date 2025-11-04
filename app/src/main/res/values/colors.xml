@@ -36,4 +36,8 @@
     <color name="md_theme_light_surfaceContainer">#efeff2</color>
     <color name="md_theme_light_surfaceContainerHigh">#e9e9ec</color>
     <color name="md_theme_light_surfaceContainerHighest">#e3e3e6</color>
+
+    <!-- Status indicator colors -->
+    <color name="status_connected">#4CAF50</color>
+    <color name="status_disconnected">#F44336</color>
 </resources>
