@@ -270,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Test if we can call a native method
             addLog("Testing native method call...");
+            addLog("Note: If this fails, the Go library may need rebuilding");
             int stats = Tun2Socks.getStats();
             addLog("SUCCESS: Native method call successful, stats: " + stats);
 
@@ -295,11 +296,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             addLog("SOLUTION:");
-            addLog("  1. Build the Go library: gradle buildGoLibs");
+            addLog("  1. IMPORTANT: Rebuild Go library with: gradle buildGoLibs");
             addLog("  2. Clean and rebuild: gradle clean assembleDebug");
             addLog("  3. Check JNI function names match between Java and Go");
             addLog("  4. Verify AndroidManifest.xml has extractNativeLibs=\"false\"");
-            addLog("  5. Ensure Go //export names match Java native method names");
+            addLog("  The APK may contain old library files before JNI fix!");
 
             showToast("Native library loading failed");
 
