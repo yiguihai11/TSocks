@@ -279,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
             addLog("  Error type: " + e.getClass().getSimpleName());
             addLog("  Error message: " + e.getMessage());
 
-            // Try alternative loading methods
+            // Try alternative loading methods if standard loading failed
             addLog("Trying alternative loading methods...");
 
             try {
@@ -295,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e2) {
                 addLog("Alternative loading also failed: " + e2.getMessage());
+                addLog("This might be a JNI method naming issue");
             }
 
             if (e.getMessage() != null) {
@@ -348,10 +349,11 @@ public class MainActivity extends AppCompatActivity {
             addLog("extractNativeLibs: " + (extractNativeLibs ? "ENABLED ✓" : "DISABLED ⚠"));
 
             if (extractNativeLibs) {
-                addLog("extractNativeLibs is ENABLED - libraries extracted to filesystem (legacy)");
+                addLog("extractNativeLibs is ENABLED - libraries extracted to filesystem");
+                addLog("This provides compatibility with absolute path loading");
             } else {
                 addLog("extractNativeLibs is DISABLED - libraries loaded from APK (modern)");
-                addLog("This is the recommended setting for Android 12+");
+                addLog("Note: useLegacyPackaging=true enables fallback loading");
             }
 
             // Check application info for native library dir
