@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         clearLogsButton.setOnClickListener(v -> {
             if (logsText != null) {
                 logsText.setText("Logs cleared...\n");
+                addLog("Logs cleared by user");
             }
         });
 
@@ -96,12 +97,21 @@ public class MainActivity extends AppCompatActivity {
 
         settingsButton.setOnClickListener(v -> openSettings());
 
-        appsButton.setOnClickListener(v -> {
-            showToast("Apps feature coming soon!");
-            // TODO: Implement apps selection functionality
+        appsButton.setOnClickListener(v -> openAppSelection());
+
+        // FAB should act as a quick toggle for VPN connection
+        fab.setOnClickListener(v -> {
+            if (isVpnRunning) {
+                showToast("Disconnecting VPN...");
+                stopVpnService();
+            } else {
+                showToast("Connecting VPN...");
+                prepareAndStartVpn();
+            }
         });
 
-        fab.setOnClickListener(v -> openSettings());
+        // Set initial FAB icon
+        fab.setImageResource(android.R.drawable.ic_media_play);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(logReceiver, new IntentFilter(TSocksVpnService.ACTION_LOG_BROADCAST));
 
@@ -141,6 +151,11 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void openAppSelection() {
+        Intent intent = new Intent(this, AppSelectionActivity.class);
+        startActivity(intent);
+    }
+
     private void addLog(String message) {
         runOnUiThread(() -> {
             TextView logsText = findViewById(R.id.logs_text);
@@ -165,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
         TextView statusText = findViewById(R.id.status_text);
         MaterialButton connectButton = findViewById(R.id.connect_button);
         MaterialCardView statusIndicator = findViewById(R.id.status_indicator);
+        FloatingActionButton fab = findViewById(R.id.fab);
 
         if (statusText != null) {
             statusText.setText("Connected");
@@ -176,6 +192,10 @@ public class MainActivity extends AppCompatActivity {
         if (statusIndicator != null) {
             statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.status_connected, null));
         }
+        if (fab != null) {
+            // Set FAB icon to disconnect icon
+            fab.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+        }
     }
 
     private void updateUiForVpnStopped() {
@@ -184,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
         TextView statusText = findViewById(R.id.status_text);
         MaterialButton connectButton = findViewById(R.id.connect_button);
         MaterialCardView statusIndicator = findViewById(R.id.status_indicator);
+        FloatingActionButton fab = findViewById(R.id.fab);
 
         if (statusText != null) {
             statusText.setText("Disconnected");
@@ -194,6 +215,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if (statusIndicator != null) {
             statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.status_disconnected, null));
+        }
+        if (fab != null) {
+            // Set FAB icon to connect icon
+            fab.setImageResource(android.R.drawable.ic_media_play);
         }
     }
 
