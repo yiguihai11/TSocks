@@ -5,11 +5,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -20,7 +20,7 @@ public class SettingsActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
 
     // Proxy Configuration UI
-    private Spinner protocolSpinner;
+    private AutoCompleteTextView protocolSpinner;
     private EditText serverEditText;
     private EditText portEditText;
     private EditText usernameEditText;
@@ -69,6 +69,12 @@ public class SettingsActivity extends AppCompatActivity {
         passwordEditText = findViewById(R.id.edit_text_password);
         saveButton = findViewById(R.id.button_save_settings);
 
+        // Setup protocol dropdown
+        String[] protocols = getResources().getStringArray(R.array.protocol_types);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+            android.R.layout.simple_dropdown_item_1line, protocols);
+        protocolSpinner.setAdapter(adapter);
+
         // Initialize Network Configuration UI
         mtuEditText = findViewById(R.id.edit_text_mtu);
         dnsV4EditText = findViewById(R.id.edit_text_dns_v4);
@@ -114,13 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void loadSettings() {
         // Load Proxy Configuration
         String protocol = sharedPreferences.getString(PREF_PROXY_PROTOCOL, "SOCKS5");
-        String[] protocols = getResources().getStringArray(R.array.protocol_types);
-        for (int i = 0; i < protocols.length; i++) {
-            if (protocols[i].equals(protocol)) {
-                protocolSpinner.setSelection(i);
-                break;
-            }
-        }
+        protocolSpinner.setText(protocol, false);
 
         serverEditText.setText(sharedPreferences.getString(PREF_PROXY_SERVER, ""));
         portEditText.setText(sharedPreferences.getString(PREF_PROXY_PORT, ""));
@@ -141,7 +141,7 @@ public class SettingsActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
         // Save Proxy Configuration
-        String selectedProtocol = (String) protocolSpinner.getSelectedItem();
+        String selectedProtocol = protocolSpinner.getText().toString();
         editor.putString(PREF_PROXY_PROTOCOL, selectedProtocol);
         editor.putString(PREF_PROXY_SERVER, serverEditText.getText().toString());
         editor.putString(PREF_PROXY_PORT, portEditText.getText().toString());
