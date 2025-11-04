@@ -44,7 +44,7 @@ TSocks is a modern Android VPN client built with Go 1.25.3 and Material 3 design
 ### Core Components
 
 1. **Go Native Engine** (`app/jni/tun2socks_android.go`)
-   - Uses tun2socks v2.5.1 library
+   - Uses tun2socks v2.6.0 library
    - Modern Go 1.25.3 language features
    - File descriptor-based device mode
    - Context-based lifecycle management
