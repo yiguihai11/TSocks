@@ -11,11 +11,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"sync"
 	"time"
-	"unsafe"
 
 	"github.com/xjasonlyu/tun2socks/v2/engine"
 )
