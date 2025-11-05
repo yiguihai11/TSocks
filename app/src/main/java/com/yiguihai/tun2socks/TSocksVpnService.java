@@ -171,15 +171,26 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
             builder.addAddress("10.0.8.1", 24);
             builder.addRoute("0.0.0.0", 0); // Default route for IPv4
             String dnsV4 = prefs.getString(SettingsActivity.PREF_DNS_V4, "8.8.8.8");
-            if (!dnsV4.isEmpty()) builder.addDnsServer(dnsV4);
+            if (!dnsV4.isEmpty()) {
+                builder.addDnsServer(dnsV4);
+                log("DEBUG: Added IPv4 DNS server: " + dnsV4);
+            }
         }
 
         if (ipv6Enabled) {
             builder.addAddress("fd00::8:1", 120);
             builder.addRoute("::", 0); // Default route for IPv6
             String dnsV6 = prefs.getString(SettingsActivity.PREF_DNS_V6, "2001:4860:4860::8888");
-            if (!dnsV6.isEmpty()) builder.addDnsServer(dnsV6);
+            if (!dnsV6.isEmpty()) {
+                builder.addDnsServer(dnsV6);
+                log("DEBUG: Added IPv6 DNS server: " + dnsV6);
+            }
         }
+
+        // Add additional DNS servers to ensure connectivity
+        log("DEBUG: Adding backup DNS servers for reliability");
+        builder.addDnsServer("1.1.1.1");     // Cloudflare
+        builder.addDnsServer("208.67.222.222"); // OpenDNS
 
         // Handle excluded routes automatically
         String excludedRoutes = prefs.getString(SettingsActivity.PREF_EXCLUDED_IPS, "");
@@ -225,6 +236,19 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
         if (pfd == null) {
             throw new IOException("Failed to establish VPN interface.");
         }
+
+        // Log network configuration for debugging
+        log("=== VPN Configuration Summary ===");
+        log("VPN Address: " + (ipv4Enabled ? "10.0.8.1/24" : "") + (ipv4Enabled && ipv6Enabled ? ", " : "") + (ipv6Enabled ? "fd00::8:1/120" : ""));
+        log("Default Routes: IPv4=" + ipv4Enabled + ", IPv6=" + ipv6Enabled);
+        log("DNS Servers: " + (ipv4Enabled && !dnsV4.isEmpty() ? dnsV4 : "") +
+            (ipv4Enabled && !dnsV4.isEmpty() ? ", " : "") +
+            (ipv6Enabled && !dnsV6.isEmpty() ? dnsV6 : "") +
+            ", 1.1.1.1, 208.67.222.222");
+        log("MTU: " + mtu);
+        log("TUN FD: " + pfd.getFd());
+        log("=== VPN Configuration Complete ===");
+
         return pfd;
     }
 
@@ -332,40 +356,57 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
     private void testNetworkConnectivity() {
         log("=== Testing Network Connectivity ===");
 
-        // Test DNS resolution
+        // Test DNS resolution with IPv4 preference
         try {
             log("Testing DNS resolution for google.com...");
+            // Force IPv4 preference to avoid IPv6 routing issues
+            System.setProperty("java.net.preferIPv4Stack", "true");
+            System.setProperty("java.net.preferIPv6Addresses", "false");
+
             InetAddress[] addresses = InetAddress.getAllByName("google.com");
             log("DNS resolution successful: " + addresses.length + " addresses found");
+
+            // Prioritize IPv4 addresses in logging
+            boolean foundIPv4 = false;
             for (InetAddress addr : addresses) {
-                log("  - " + addr.getHostAddress());
+                String ip = addr.getHostAddress();
+                if (ip.contains(".")) { // IPv4
+                    log("  - " + ip + " (IPv4)");
+                    foundIPv4 = true;
+                } else { // IPv6
+                    log("  - " + ip + " (IPv6)");
+                }
+            }
+
+            if (!foundIPv4) {
+                log("WARNING: No IPv4 addresses found, this may cause connectivity issues");
             }
         } catch (Exception e) {
             log("ERROR: DNS resolution failed: " + e.getMessage());
         }
 
-        // Test HTTP connectivity (in a separate thread to avoid blocking)
+        // Test HTTPS connectivity (in a separate thread to avoid blocking)
         new Thread(() -> {
             try {
-                log("Testing HTTP connectivity to http://httpbin.org/ip...");
-                URL url = new URL("http://httpbin.org/ip");
+                log("Testing HTTPS connectivity to https://httpbin.org/ip...");
+                URL url = new URL("https://httpbin.org/ip");
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(5000);
                 conn.setRequestMethod("GET");
 
                 int responseCode = conn.getResponseCode();
-                log("HTTP response code: " + responseCode);
+                log("HTTPS response code: " + responseCode);
 
                 if (responseCode == 200) {
                     String response = new String(conn.getInputStream().readAllBytes());
-                    log("HTTP response: " + response);
+                    log("HTTPS response: " + response);
                 } else {
-                    log("HTTP request failed with code: " + responseCode);
+                    log("HTTPS request failed with code: " + responseCode);
                 }
                 conn.disconnect();
             } catch (Exception e) {
-                log("ERROR: HTTP connectivity test failed: " + e.getMessage());
+                log("ERROR: HTTPS connectivity test failed: " + e.getMessage());
             }
         }).start();
 
