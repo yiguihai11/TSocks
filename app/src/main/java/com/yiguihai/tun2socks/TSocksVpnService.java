@@ -64,38 +64,68 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                     }
                 }
 
-                int port = 0; // Default port
-                // Validate port only for protocols that need it
-                if (!proxyType.equals("Direct") && !proxyType.equals("Reject")) {
-                    try {
-                        port = Integer.parseInt(portStr);
-                        if (port <= 0 || port > 65535) {
-                            log("ERROR: Invalid proxy port: " + port);
-                            throw new Exception("Invalid proxy port: " + port);
+                // Test native library availability before starting
+                try {
+                    log("Testing native library connectivity...");
+                    int testResult = Tun2Socks.testJNI();
+                    log("Native library test result: " + testResult);
+                } catch (UnsatisfiedLinkError e) {
+                    log("ERROR: Native library not available or incompatible: " + e.getMessage());
+                    throw new Exception("Native library error: " + e.getMessage());
+                } catch (Exception e) {
+                    log("WARNING: Native library test failed, continuing: " + e.getMessage());
+                }
+
+                // Add a small delay to ensure VPN interface is fully ready
+                Thread.sleep(100);
+
+                // Start the native tun2socks process based on protocol with enhanced error handling
+                try {
+                    if (proxyType.equalsIgnoreCase("Direct")) {
+                        log("Starting tun2socks with Direct connection (no proxy)");
+                        Tun2Socks.StartWithUrl(tunFd.getFd(), "direct://");
+                    } else if (proxyType.equalsIgnoreCase("Reject")) {
+                        log("Starting tun2socks with Reject mode (blocking all connections)");
+                        Tun2Socks.StartWithUrl(tunFd.getFd(), "reject://");
+                    } else {
+                        int port = 0; // Default port
+                        try {
+                            port = Integer.parseInt(portStr);
+                            if (port <= 0 || port > 65535) {
+                                log("ERROR: Invalid proxy port: " + port);
+                                throw new Exception("Invalid proxy port: " + port);
+                            }
+                        } catch (NumberFormatException e) {
+                            log("ERROR: Invalid port format: " + portStr);
+                            throw new Exception("Invalid port format: " + portStr);
                         }
-                    } catch (NumberFormatException e) {
-                        log("ERROR: Invalid port format: " + portStr);
-                        throw new Exception("Invalid port format: " + portStr);
+
+                        log(String.format("Starting tun2socks with %s://%s:%d (user: %s)",
+                            proxyType.toLowerCase(), server, port, username.isEmpty() ? "none" : username));
+                        Tun2Socks.Start(tunFd.getFd(), proxyType, server, port, username, password);
                     }
-                }
 
-                // Log configuration (without password)
-                if (proxyType.equals("Direct")) {
-                    log("Starting tun2socks with Direct connection (no proxy)");
-                } else if (proxyType.equals("Reject")) {
-                    log("Starting tun2socks with Reject mode (blocking all connections)");
-                } else {
-                    log(String.format("Starting tun2socks with %s://%s:%d (user: %s)",
-                        proxyType.toLowerCase(), server, port, username.isEmpty() ? "none" : username));
-                }
+                    // Add a small delay to verify native startup
+                    Thread.sleep(200);
+                    log("Native tun2socks started successfully");
 
-                // Start the native tun2socks process with proxy configuration
-                Tun2Socks.Start(tunFd.getFd(), proxyType, server, port, username, password);
-                log("Native tun2socks started successfully");
+                } catch (UnsatisfiedLinkError e) {
+                    log("FATAL: Native library linking error: " + e.getMessage());
+                    throw new Exception("Native library linking failed: " + e.getMessage());
+                } catch (Exception e) {
+                    log("ERROR: Failed to start native tun2socks: " + e.getMessage());
+                    throw new Exception("Native startup failed: " + e.getMessage());
+                }
 
             } catch (Exception e) {
                 Log.e(TAG, "VPN thread error", e);
                 log("Error: " + e.getMessage());
+
+                // Send error broadcast to UI
+                Intent errorIntent = new Intent("com.yiguihai.tun2socks.VPN_ERROR");
+                errorIntent.putExtra("error", e.getMessage());
+                sendBroadcast(errorIntent);
+
                 stopSelf(); // Stop service if startup fails
             }
         });
@@ -240,11 +270,20 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
 
     private void stopVpn() {
         log("Stopping VPN...");
-        Tun2Socks.Stop(); // Call JNI to stop the native process
+        try {
+            // Try to stop native process with enhanced error handling
+            Tun2Socks.Stop(); // Call JNI to stop the native process
+            log("Native tun2socks stopped");
+        } catch (UnsatisfiedLinkError e) {
+            log("WARNING: Native library error during stop: " + e.getMessage());
+        } catch (Exception e) {
+            Log.e(TAG, "Error stopping native tun2socks", e);
+        }
 
         if (tunFd != null) {
             try {
                 tunFd.close();
+                log("TUN file descriptor closed");
             } catch (IOException e) {
                 Log.e(TAG, "Failed to close TUN FD", e);
             }
