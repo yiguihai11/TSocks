@@ -14,7 +14,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unsafe"
 
 	"github.com/xjasonlyu/tun2socks/v2/engine"
 )
@@ -75,7 +74,7 @@ func NewConfig(fd int, proxyType, server, username, password string, port int) (
 func buildProxyURL(proxyType, server, username, password string, port int) (string, error) {
 	protocol := strings.ToLower(proxyType)
 
-	// Handle special protocols that don't need proxy URLs
+	// Handle special protocols that don't need server/port
 	switch protocol {
 	case "direct":
 		return "direct://", nil
