@@ -106,7 +106,15 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                         log("DEBUG: Using URL: reject://");
                         Tun2Socks.StartWithUrl(tunFd.getFd(), "reject://");
                     } else {
-                        int port = 0; // Default port
+                        // Enhanced proxy parameter validation
+                        log("=== PROXY CONFIGURATION VALIDATION ===");
+                        log("Protocol: " + proxyType);
+                        log("Server: '" + server + "'");
+                        log("Port: '" + portStr + "'");
+                        log("Username: '" + username + "'");
+                        log("Password length: " + (password != null ? password.length() : 0));
+
+                        int port = 0;
                         try {
                             port = Integer.parseInt(portStr);
                             if (port <= 0 || port > 65535) {
@@ -118,10 +126,45 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                             throw new Exception("Invalid port format: " + portStr);
                         }
 
+                        // Validate server address
+                        if (server == null || server.trim().isEmpty()) {
+                            log("ERROR: Proxy server is empty or null");
+                            throw new Exception("Proxy server is required");
+                        }
+
+                        // Sanitize parameters for native library
+                        String cleanServer = server.trim();
+                        String cleanUsername = username != null ? username.trim() : "";
+                        String cleanPassword = password != null ? password.trim() : "";
+
+                        log("=== SANITIZED PARAMETERS ===");
+                        log("Clean server: '" + cleanServer + "'");
+                        log("Clean port: " + port);
+                        log("Clean username: '" + cleanUsername + "'");
+                        log("Has password: " + !cleanPassword.isEmpty());
+
                         log(String.format("Starting tun2socks with %s://%s:%d (user: %s)",
-                            proxyType.toLowerCase(), server, port, username.isEmpty() ? "none" : username));
+                            proxyType.toLowerCase(), cleanServer, port, cleanUsername.isEmpty() ? "none" : cleanUsername));
                         log("DEBUG: Using traditional Start method with parameters");
-                        Tun2Socks.Start(tunFd.getFd(), proxyType, server, port, username, password);
+
+                        // Add additional safety check before native call
+                        try {
+                            log("DEBUG: About to call native Tun2Socks.Start() method");
+                            log("DEBUG: Parameters - FD: " + tunFd.getFd() + ", Type: " + proxyType +
+                                ", Server: " + cleanServer + ", Port: " + port +
+                                ", User: " + cleanUsername + ", PassLen: " + cleanPassword.length());
+
+                            Tun2Socks.Start(tunFd.getFd(), proxyType, cleanServer, port, cleanUsername, cleanPassword);
+                            log("DEBUG: Native Tun2Socks.Start() completed successfully");
+
+                        } catch (UnsatisfiedLinkError e) {
+                            log("FATAL: Native library error during SOCKS5 start: " + e.getMessage());
+                            log("This may indicate parameter format incompatibility");
+                            throw new Exception("Native library SOCKS5 error: " + e.getMessage());
+                        } catch (Exception e) {
+                            log("ERROR: SOCKS5 native start failed: " + e.getMessage());
+                            throw new Exception("SOCKS5 start failed: " + e.getMessage());
+                        }
                     }
 
                     // Add delay to verify native startup and test connectivity
