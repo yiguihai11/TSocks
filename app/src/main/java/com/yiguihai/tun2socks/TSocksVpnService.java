@@ -491,6 +491,27 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                 }
             }).start();
 
+            // Test alternative connectivity to a simple service
+            new Thread(() -> {
+                try {
+                    log("Testing connectivity to http://example.com...");
+                    URL url = new URL("http://example.com");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setConnectTimeout(3000);
+                    conn.setReadTimeout(3000);
+                    conn.setRequestMethod("GET");
+
+                    int responseCode = conn.getResponseCode();
+                    log("example.com response code: " + responseCode);
+                    if (responseCode == 200) {
+                        log("example.com connectivity: SUCCESS");
+                    }
+                    conn.disconnect();
+                } catch (Exception e) {
+                    log("ERROR: example.com connectivity failed: " + e.getMessage());
+                }
+            }).start();
+
         } catch (Exception e) {
             log("ERROR: DNS resolution failed: " + e.getMessage());
         }
@@ -526,9 +547,45 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
             InetAddress address = InetAddress.getByName("8.8.8.8");
             boolean reachable = address.isReachable(3000);
             log("Ping to 8.8.8.8: " + (reachable ? "SUCCESS" : "FAILED"));
+
+            // Additional network diagnostics
+            if (reachable) {
+                log("SUCCESS: Basic network connectivity confirmed");
+            } else {
+                log("WARNING: Basic network connectivity failed");
+            }
         } catch (Exception e) {
             log("ERROR: Ping test failed: " + e.getMessage());
         }
+
+        // Check if we can actually use the internet by making a real request
+        new Thread(() -> {
+            try {
+                log("Testing actual internet access...");
+
+                // Test with ipinfo.io (simple JSON service)
+                URL url = new URL("https://ipinfo.io/json");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("User-Agent", "TSocks-VPN/1.0");
+
+                int responseCode = conn.getResponseCode();
+                log("ipinfo.io response code: " + responseCode);
+
+                if (responseCode == 200) {
+                    String response = new String(conn.getInputStream().readAllBytes());
+                    log("ipinfo.io response: " + response.substring(0, Math.min(100, response.length())) + "...");
+                    log("INTERNET ACCESS: SUCCESSFUL");
+                } else {
+                    log("INTERNET ACCESS: FAILED - Response code: " + responseCode);
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                log("ERROR: Internet access test failed: " + e.getMessage());
+            }
+        }).start();
 
         log("=== Network Connectivity Test Complete ===");
     }
