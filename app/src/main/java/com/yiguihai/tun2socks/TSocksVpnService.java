@@ -167,10 +167,13 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
         boolean ipv4Enabled = prefs.getBoolean(SettingsActivity.PREF_IPV4_ENABLED, true);
         boolean ipv6Enabled = prefs.getBoolean(SettingsActivity.PREF_IPV6_ENABLED, false);
 
+        // Get DNS settings for logging
+        String dnsV4 = prefs.getString(SettingsActivity.PREF_DNS_V4, "8.8.8.8");
+        String dnsV6 = prefs.getString(SettingsActivity.PREF_DNS_V6, "2001:4860:4860::8888");
+
         if (ipv4Enabled) {
             builder.addAddress("10.0.8.1", 24);
             builder.addRoute("0.0.0.0", 0); // Default route for IPv4
-            String dnsV4 = prefs.getString(SettingsActivity.PREF_DNS_V4, "8.8.8.8");
             if (!dnsV4.isEmpty()) {
                 builder.addDnsServer(dnsV4);
                 log("DEBUG: Added IPv4 DNS server: " + dnsV4);
@@ -180,7 +183,6 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
         if (ipv6Enabled) {
             builder.addAddress("fd00::8:1", 120);
             builder.addRoute("::", 0); // Default route for IPv6
-            String dnsV6 = prefs.getString(SettingsActivity.PREF_DNS_V6, "2001:4860:4860::8888");
             if (!dnsV6.isEmpty()) {
                 builder.addDnsServer(dnsV6);
                 log("DEBUG: Added IPv6 DNS server: " + dnsV6);
