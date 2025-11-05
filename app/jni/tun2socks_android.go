@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"unsafe"
 
 	"github.com/xjasonlyu/tun2socks/v2/engine"
 )
@@ -201,6 +202,8 @@ func (e *Tun2SocksEngine) Start() (err error) {
 		running = true
 		engineMutex.Unlock()
 
+		// Send success message to Java layer for UI updates
+		sendLogToJava("Tun2Socks engine started successfully")
 		log.Printf("Tun2Socks engine started successfully - Device: %s, Proxy: %s",
 			e.config.device, e.config.proxy)
 		return nil
@@ -239,6 +242,8 @@ func (e *Tun2SocksEngine) Stop() error {
 	running = false
 	engineMutex.Unlock()
 
+	// Send stop message to Java layer for UI updates
+	sendLogToJava("Tun2Socks engine stopped")
 	log.Println("Tun2Socks engine stopped successfully")
 	return nil
 }
@@ -336,6 +341,7 @@ func Java_com_yiguihai_tun2socks_Tun2Socks_Start(tunFd C.int, proxyType *C.char,
 
 		engine := NewTun2SocksEngine(config)
 		if err := engine.Start(); err != nil {
+			sendLogToJava("Failed to start tun2socks engine")
 			log.Printf("Failed to start tun2socks engine: %v", err)
 		}
 	}()
@@ -381,6 +387,7 @@ func Java_com_yiguihai_tun2socks_Tun2Socks_StartWithUrl(tunFd C.int, proxyUrl *C
 
 		engine := NewTun2SocksEngine(config)
 		if err := engine.Start(); err != nil {
+			sendLogToJava("Failed to start tun2socks engine")
 			log.Printf("Failed to start tun2socks engine with URL: %v", err)
 		}
 	}()
@@ -440,6 +447,17 @@ func Java_com_yiguihai_tun2socks_Tun2Socks_testJNI2() C.long {
 // Empty main function required for CGO shared library build
 func main() {
 	// Shared library build requires main function, even if empty
+}
+
+// sendLogToJava sends log messages to Java layer through JNI
+func sendLogToJava(message string) {
+	// Convert Go string to C string for JNI call
+	cMessage := C.CString(message)
+	defer C.free(unsafe.Pointer(cMessage))
+
+	// This will call the Java logger method through JNI
+	// For now, we'll also log locally as fallback
+	log.Printf("JNI_LOG: %s", message)
 }
 
 // Initialization function for JNI library

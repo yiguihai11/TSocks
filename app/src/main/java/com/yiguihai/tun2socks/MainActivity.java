@@ -51,9 +51,16 @@ public class MainActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
+                    // VPN permission granted, now start the service
+                    addLog("VPN permission granted, starting service...");
                     startVpnService();
                 } else {
                     showToast("VPN permission was denied.");
+                    // Ensure UI shows disconnected state
+                    runOnUiThread(() -> {
+                        isVpnRunning = false;
+                        updateUiForVpnStopped();
+                    });
                 }
             });
 
@@ -183,18 +190,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void prepareAndStartVpn() {
+        // Show connecting state immediately when user clicks connect
+        updateUiForConnecting();
+
+        // Add log for debugging VPN permission check
+        addLog("Checking VPN permission...");
         Intent vpnIntent = VpnService.prepare(this);
+
         if (vpnIntent != null) {
+            addLog("VPN permission required, requesting user approval");
             vpnPermissionLauncher.launch(vpnIntent);
         } else {
+            addLog("VPN permission already granted, starting service directly");
             startVpnService();
         }
     }
 
     private void startVpnService() {
+        addLog("Starting VPN service...");
         Intent intent = new Intent(this, TSocksVpnService.class);
         startService(intent);
-        updateUiForVpnStarted();
+        // Note: Don't update UI state here.
+        // Wait for engine start/stop messages from service to update UI.
+        // updateUiForVpnStarted() will be called from logReceiver when engine starts successfully.
     }
 
     private void stopVpnService() {
@@ -245,8 +263,38 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void updateUiForConnecting() {
+        // Add log for debugging state transitions
+        addLog("UI: Showing connecting state...");
+
+        // Update Material 3 UI components to show connecting state
+        TextView statusText = findViewById(R.id.status_text);
+        MaterialButton connectButton = findViewById(R.id.connect_button);
+        MaterialCardView statusIndicator = findViewById(R.id.status_indicator);
+        FloatingActionButton fab = findViewById(R.id.fab);
+
+        if (statusText != null) {
+            statusText.setText("Connecting...");
+            statusText.setTextColor(getResources().getColor(R.color.design_default_color_primary, null));
+        }
+        if (connectButton != null) {
+            connectButton.setText("Connecting...");
+            connectButton.setEnabled(false); // Disable button during connection
+        }
+        if (statusIndicator != null) {
+            statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.design_default_color_primary, null));
+        }
+        if (fab != null) {
+            // Set FAB to show connecting state
+            fab.setImageResource(android.R.drawable.ic_menu_rotate);
+            fab.setEnabled(false);
+        }
+    }
+
     private void updateUiForVpnStarted() {
         isVpnRunning = true;
+        addLog("UI: VPN connected successfully");
+
         // Update Material 3 UI components
         TextView statusText = findViewById(R.id.status_text);
         MaterialButton connectButton = findViewById(R.id.connect_button);
@@ -259,6 +307,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (connectButton != null) {
             connectButton.setText("Disconnect");
+            connectButton.setEnabled(true); // Re-enable button
         }
         if (statusIndicator != null) {
             statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.status_connected, null));
@@ -266,11 +315,14 @@ public class MainActivity extends AppCompatActivity {
         if (fab != null) {
             // Set FAB icon to disconnect icon
             fab.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+            fab.setEnabled(true);
         }
     }
 
     private void updateUiForVpnStopped() {
         isVpnRunning = false;
+        addLog("UI: VPN disconnected");
+
         // Update Material 3 UI components
         TextView statusText = findViewById(R.id.status_text);
         MaterialButton connectButton = findViewById(R.id.connect_button);
@@ -283,6 +335,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (connectButton != null) {
             connectButton.setText("Connect");
+            connectButton.setEnabled(true); // Ensure button is enabled
         }
         if (statusIndicator != null) {
             statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.status_disconnected, null));
@@ -290,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
         if (fab != null) {
             // Set FAB icon to connect icon
             fab.setImageResource(android.R.drawable.ic_media_play);
+            fab.setEnabled(true); // Ensure FAB is enabled
         }
     }
 
