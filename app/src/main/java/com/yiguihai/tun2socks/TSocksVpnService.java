@@ -90,7 +90,17 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                     if (proxyType.equalsIgnoreCase("Direct")) {
                         log("Starting tun2socks with Direct connection (no proxy)");
                         log("DEBUG: Using URL: direct://");
-                        Tun2Socks.StartWithUrl(tunFd.getFd(), "direct://");
+                        log("DEBUG: Alternative direct URL would be: direct://0.0.0.0/0");
+
+                        // Try direct:// format first
+                        try {
+                            Tun2Socks.StartWithUrl(tunFd.getFd(), "direct://");
+                            log("DEBUG: direct:// URL accepted by native library");
+                        } catch (Exception e) {
+                            log("WARNING: direct:// URL failed: " + e.getMessage());
+                            log("This might indicate the native library doesn't support this URL format");
+                            throw e;
+                        }
                     } else if (proxyType.equalsIgnoreCase("Reject")) {
                         log("Starting tun2socks with Reject mode (blocking all connections)");
                         log("DEBUG: Using URL: reject://");
@@ -124,6 +134,40 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                     try {
                         int stats = Tun2Socks.getStats();
                         log("Native library stats: " + stats);
+
+                        // Test if native library is actually processing data
+                        if (stats == 0) {
+                            log("WARNING: No traffic processed yet, this might indicate a routing issue");
+
+                            // Add more detailed diagnostics
+                            new Thread(() -> {
+                                try {
+                                    Thread.sleep(1000); // Wait 1 second
+                                    int stats2 = Tun2Socks.getStats();
+                                    log("Stats after 1 second: " + stats2);
+
+                                    if (stats2 == 0) {
+                                        log("DIAGNOSIS: No traffic is flowing through the VPN tunnel");
+                                        log("This suggests a routing or configuration problem");
+
+                                        // Test network interface status
+                                        try {
+                                            java.net.NetworkInterface tunInterface = java.net.NetworkInterface.getByName("tun0");
+                                            if (tunInterface != null) {
+                                                log("TUN interface found: " + tunInterface.toString());
+                                                log("TUN interface is up: " + tunInterface.isUp());
+                                            } else {
+                                                log("WARNING: TUN interface not found in NetworkInterface list");
+                                            }
+                                        } catch (Exception e) {
+                                            log("Could not check TUN interface: " + e.getMessage());
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log("Error during stats monitoring: " + e.getMessage());
+                                }
+                            }).start();
+                        }
                     } catch (Exception e) {
                         log("WARNING: Could not get stats from native library: " + e.getMessage());
                     }
@@ -365,24 +409,45 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
             System.setProperty("java.net.preferIPv4Stack", "true");
             System.setProperty("java.net.preferIPv6Addresses", "false");
 
-            InetAddress[] addresses = InetAddress.getAllByName("google.com");
-            log("DNS resolution successful: " + addresses.length + " addresses found");
+            // Test IPv4-only resolution first
+            log("Testing IPv4-only DNS resolution...");
+            InetAddress[] ipv4Addresses = InetAddress.getAllByName("google.com");
 
-            // Prioritize IPv4 addresses in logging
-            boolean foundIPv4 = false;
-            for (InetAddress addr : addresses) {
+            log("DNS resolution successful: " + ipv4Addresses.length + " addresses found");
+
+            // Prioritize IPv4 addresses and prefer them for connections
+            InetAddress ipv4Address = null;
+            for (InetAddress addr : ipv4Addresses) {
                 String ip = addr.getHostAddress();
                 if (ip.contains(".")) { // IPv4
-                    log("  - " + ip + " (IPv4)");
-                    foundIPv4 = true;
+                    log("  - " + ip + " (IPv4) ⭐ PREFERRED");
+                    if (ipv4Address == null) {
+                        ipv4Address = addr; // Use first IPv4 address
+                    }
                 } else { // IPv6
-                    log("  - " + ip + " (IPv6)");
+                    log("  - " + ip + " (IPv6) - will be ignored");
                 }
             }
 
-            if (!foundIPv4) {
+            if (ipv4Address != null) {
+                log("SUCCESS: Will use IPv4 address: " + ipv4Address.getHostAddress());
+            } else {
                 log("WARNING: No IPv4 addresses found, this may cause connectivity issues");
             }
+
+            // Test simple TCP connection to google.com on port 443
+            new Thread(() -> {
+                try {
+                    log("Testing TCP connection to google.com:443...");
+                    java.net.Socket socket = new java.net.Socket();
+                    socket.connect(new java.net.InetSocketAddress("google.com", 443), 5000);
+                    socket.close();
+                    log("TCP connection to google.com:443: SUCCESS");
+                } catch (Exception e) {
+                    log("ERROR: TCP connection to google.com:443 failed: " + e.getMessage());
+                }
+            }).start();
+
         } catch (Exception e) {
             log("ERROR: DNS resolution failed: " + e.getMessage());
         }
