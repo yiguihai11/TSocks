@@ -51,16 +51,14 @@ public class Tun2Socks {
         public int port;
         public String username;
         public String password;
-        public String excludedIps;
 
         public ProxyConfig(ProxyProtocol protocol, String server, int port,
-                          String username, String password, String excludedIps) {
+                          String username, String password) {
             this.protocol = protocol;
             this.server = server;
             this.port = port;
             this.username = username;
             this.password = password;
-            this.excludedIps = excludedIps;
         }
 
         public String toUrl() {
@@ -92,19 +90,19 @@ public class Tun2Socks {
     }
 
     /**
-     * Starts the tun2socks core engine (legacy method for compatibility).
+     * Starts the tun2socks core engine with full proxy configuration.
      */
-    public static native void Start(int tunFd, String proxyType, String server, int port, String password, String excludedIps);
+    public static native void Start(int tunFd, String proxyType, String server, int port, String username, String password);
 
     /**
      * Starts the tun2socks core engine with enhanced configuration.
      */
-    public static native void StartWithUrl(int tunFd, String proxyUrl, String excludedIps);
+    public static native void StartWithUrl(int tunFd, String proxyUrl);
 
     /**
      * Starts the tun2socks core engine with proxy config.
      */
-    public static native void StartWithConfig(int tunFd, String proxyUrl, String excludedIps);
+    public static native void StartWithConfig(int tunFd, String proxyUrl);
 
     /**
      * Stops the tun2socks core engine (legacy method).
