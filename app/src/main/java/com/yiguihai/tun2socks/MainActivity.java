@@ -63,6 +63,45 @@ public class MainActivity extends AppCompatActivity {
             String message = intent.getStringExtra(TSocksVpnService.EXTRA_LOG_MESSAGE);
             if (message != null) {
                 addLog(message);
+
+                // Handle special messages for UI updates
+                if (message.contains("Tun2Socks engine started successfully")) {
+                    runOnUiThread(() -> {
+                        isVpnRunning = true;
+                        updateUiForVpnStarted();
+                    });
+                } else if (message.contains("Tun2Socks engine stopped") || message.contains("Failed to start tun2socks engine")) {
+                    runOnUiThread(() -> {
+                        isVpnRunning = false;
+                        updateUiForVpnStopped();
+                    });
+                }
+            }
+        }
+    };
+
+    private final BroadcastReceiver configNeededReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+            if (message != null) {
+                runOnUiThread(() -> {
+                    isVpnRunning = false;
+                    updateUiForVpnStopped();
+
+                    // Show dialog to configure proxy settings
+                    androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Configuration Required")
+                           .setMessage(message + "\n\nWould you like to open Settings to configure proxy now?")
+                           .setPositiveButton("Open Settings", (dialog, which) -> {
+                               openSettings();
+                           })
+                           .setNegativeButton("Cancel", (dialog, which) -> {
+                               dialog.dismiss();
+                           })
+                           .setCancelable(false)
+                           .show();
+                });
             }
         }
     };
@@ -129,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setImageResource(android.R.drawable.ic_media_play);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(logReceiver, new IntentFilter(TSocksVpnService.ACTION_LOG_BROADCAST));
+        LocalBroadcastManager.getInstance(this).registerReceiver(configNeededReceiver, new IntentFilter("com.yiguihai.tun2socks.CONFIGURATION_NEEDED"));
 
         addLog("Welcome to TSocks!");
         updateConfigurationDisplay();
@@ -139,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(logReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(configNeededReceiver);
     }
 
     private void prepareAndStartVpn() {

@@ -40,10 +40,26 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                 String password = prefs.getString(SettingsActivity.PREF_PROXY_PASSWORD, "");
                 String excludedRoutes = prefs.getString(SettingsActivity.PREF_EXCLUDED_IPS, "");
 
+                // Log configuration for debugging
+                log("Configuration loaded:");
+                log("  Protocol: " + proxyType);
+                log("  Server: '" + server + "'");
+                log("  Port: " + portStr);
+                log("  Username: '" + username + "'");
+                log("  Password: " + (password.isEmpty() ? "empty" : "set"));
+                log("  ExcludedRoutes: '" + excludedRoutes + "'");
+
                 // Validate configuration
-                if (server.isEmpty()) {
+                if (server.isEmpty() || server.trim().isEmpty()) {
                     log("ERROR: Proxy server not configured");
-                    throw new Exception("Proxy server not configured in settings");
+                    log("SOLUTION: Please open Settings and configure proxy server");
+
+                    // Send broadcast to MainActivity to show configuration needed dialog
+                    Intent broadcastIntent = new Intent("com.yiguihai.tun2socks.CONFIGURATION_NEEDED");
+                    broadcastIntent.putExtra("message", "Proxy server not configured. Please configure proxy settings first.");
+                    sendBroadcast(broadcastIntent);
+
+                    throw new Exception("Proxy server not configured in settings. Please configure proxy server first.");
                 }
 
                 int port;
