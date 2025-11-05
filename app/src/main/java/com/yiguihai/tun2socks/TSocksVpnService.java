@@ -250,13 +250,17 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
         String mtu = prefs.getString(SettingsActivity.PREF_MTU, "1500");
         builder.setMtu(Integer.parseInt(mtu));
 
-        // Basic VPN configuration
+        // Basic VPN configuration - Force IPv4-only mode to avoid routing issues
         boolean ipv4Enabled = prefs.getBoolean(SettingsActivity.PREF_IPV4_ENABLED, true);
-        boolean ipv6Enabled = prefs.getBoolean(SettingsActivity.PREF_IPV6_ENABLED, false);
+        boolean ipv6Enabled = false; // FORCE DISABLE IPv6 to prevent connectivity issues
 
         // Get DNS settings for logging
         String dnsV4 = prefs.getString(SettingsActivity.PREF_DNS_V4, "8.8.8.8");
         String dnsV6 = prefs.getString(SettingsActivity.PREF_DNS_V6, "2001:4860:4860::8888");
+
+        log("=== VPN MODE CONFIGURATION ===");
+        log("IPv4 Enabled: " + ipv4Enabled);
+        log("IPv6 Enabled: " + ipv6Enabled + " (FORCE DISABLED for compatibility)");
 
         if (ipv4Enabled) {
             builder.addAddress("10.0.8.1", 24);
@@ -265,21 +269,20 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                 builder.addDnsServer(dnsV4);
                 log("DEBUG: Added IPv4 DNS server: " + dnsV4);
             }
+
+            // Add only IPv4 DNS servers to ensure IPv4-only operation
+            builder.addDnsServer("1.1.1.1");     // Cloudflare IPv4
+            builder.addDnsServer("208.67.222.222"); // OpenDNS IPv4
+            builder.addDnsServer("9.9.9.9");     // Quad9 IPv4
+            log("DEBUG: Added IPv4-only DNS servers for compatibility");
         }
 
         if (ipv6Enabled) {
-            builder.addAddress("fd00::8:1", 120);
-            builder.addRoute("::", 0); // Default route for IPv6
-            if (!dnsV6.isEmpty()) {
-                builder.addDnsServer(dnsV6);
-                log("DEBUG: Added IPv6 DNS server: " + dnsV6);
-            }
+            log("WARNING: IPv6 is disabled to prevent connectivity issues");
+            // Do not add IPv6 configuration
         }
 
-        // Add additional DNS servers to ensure connectivity
-        log("DEBUG: Adding backup DNS servers for reliability");
-        builder.addDnsServer("1.1.1.1");     // Cloudflare
-        builder.addDnsServer("208.67.222.222"); // OpenDNS
+        // DNS servers already added above - IPv4 only mode
 
         // Handle excluded routes automatically
         String excludedRoutes = prefs.getString(SettingsActivity.PREF_EXCLUDED_IPS, "");
@@ -451,6 +454,10 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
             // Force IPv4 preference to avoid IPv6 routing issues
             System.setProperty("java.net.preferIPv4Stack", "true");
             System.setProperty("java.net.preferIPv6Addresses", "false");
+
+            // Additional IPv4 enforcement
+            log("Enforcing IPv4-only DNS resolution...");
+            java.security.Security.setProperty("networkaddress.cache.ttl", "0");
 
             // Test IPv4-only resolution first
             log("Testing IPv4-only DNS resolution...");
