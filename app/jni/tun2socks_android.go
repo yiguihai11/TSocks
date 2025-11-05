@@ -241,7 +241,6 @@ func (e *Tun2SocksEngine) Stop() error {
 	// Update global state
 	engineMutex.Lock()
 	engineRunning = false
-	currentEngine = nil
 	engineMutex.Unlock()
 
 	log.Println("Tun2Socks engine stopped successfully")
@@ -292,24 +291,25 @@ func IsRunning() bool {
 func StopGlobalEngine() {
 	engineMutex.Lock()
 	eng := currentEngine
-	engineMutex.Unlock()
-
-	if eng != nil {
-		if err := eng.Stop(); err != nil {
-			log.Printf("Error stopping global engine: %v", err)
-		}
-	} else {
-		// Still try to stop the engine directly
+	if eng == nil {
+		engineMutex.Unlock()
+		// If there's no engine, still ensure the state is clean.
 		safeEngineStop()
-		
 		engineMutex.Lock()
 		engineRunning = false
 		engineMutex.Unlock()
-		
 		log.Println("Global engine stopped (no current engine reference)")
+		return
+	}
+	// Set to nil to prevent other goroutines from stopping the same engine.
+	currentEngine = nil
+	engineMutex.Unlock()
+
+	// Stop the engine outside the lock.
+	if err := eng.Stop(); err != nil {
+		log.Printf("Error stopping global engine: %v", err)
 	}
 }
-
 //export Java_com_yiguihai_tun2socks_Tun2Socks_Start
 func Java_com_yiguihai_tun2socks_Tun2Socks_Start(tunFd C.int, proxyType *C.char, server *C.char, port C.int, username *C.char, password *C.char) {
 	// Convert C strings to Go strings safely
@@ -345,9 +345,6 @@ func Java_com_yiguihai_tun2socks_Tun2Socks_Start(tunFd C.int, proxyType *C.char,
 
 	// Stop any existing engine
 	StopGlobalEngine()
-	
-	// Wait a bit for cleanup
-	time.Sleep(500 * time.Millisecond)
 
 	// Create and start new engine
 	engine := NewTun2SocksEngine(config)
@@ -379,7 +376,6 @@ func Java_com_yiguihai_tun2socks_Tun2Socks_StartWithUrl(tunFd C.int, proxyUrl *C
 
 	// Stop any existing engine
 	StopGlobalEngine()
-	time.Sleep(500 * time.Millisecond)
 
 	engine := NewTun2SocksEngine(config)
 	if err := engine.Start(); err != nil {

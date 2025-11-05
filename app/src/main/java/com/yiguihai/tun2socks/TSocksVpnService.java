@@ -96,8 +96,7 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
             } catch (Exception e) {
                 Log.e(TAG, "VPN thread error", e);
                 log("Error: " + e.getMessage());
-            } finally {
-                stopVpn();
+                stopSelf(); // Stop service if startup fails
             }
         });
 
