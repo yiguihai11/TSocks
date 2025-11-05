@@ -1,5 +1,10 @@
 package main
 
+/*
+#cgo CFLAGS: -Wno-error=implicit-function-declaration
+#include <stdlib.h>
+#include <string.h>
+*/
 import "C"
 
 import (
@@ -453,7 +458,10 @@ func main() {
 func sendLogToJava(message string) {
 	// Convert Go string to C string for JNI call
 	cMessage := C.CString(message)
-	defer C.free(unsafe.Pointer(cMessage))
+	defer func() {
+		// Free the C string to prevent memory leaks
+		C.free(unsafe.Pointer(cMessage))
+	}()
 
 	// This will call the Java logger method through JNI
 	// For now, we'll also log locally as fallback
