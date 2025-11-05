@@ -49,34 +49,45 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
                 log("  Password: " + (password.isEmpty() ? "empty" : "set"));
                 log("  ExcludedRoutes: '" + excludedRoutes + "'");
 
-                // Validate configuration
-                if (server.isEmpty() || server.trim().isEmpty()) {
-                    log("ERROR: Proxy server not configured");
-                    log("SOLUTION: Please open Settings and configure proxy server");
+                // Validate configuration - skip for Direct and Reject protocols
+                if (!proxyType.equals("Direct") && !proxyType.equals("Reject")) {
+                    if (server.isEmpty() || server.trim().isEmpty()) {
+                        log("ERROR: Proxy server not configured");
+                        log("SOLUTION: Please open Settings and configure proxy server");
 
-                    // Send broadcast to MainActivity to show configuration needed dialog
-                    Intent broadcastIntent = new Intent("com.yiguihai.tun2socks.CONFIGURATION_NEEDED");
-                    broadcastIntent.putExtra("message", "Proxy server not configured. Please configure proxy settings first.");
-                    sendBroadcast(broadcastIntent);
+                        // Send broadcast to MainActivity to show configuration needed dialog
+                        Intent broadcastIntent = new Intent("com.yiguihai.tun2socks.CONFIGURATION_NEEDED");
+                        broadcastIntent.putExtra("message", "Proxy server not configured. Please configure proxy settings first.");
+                        sendBroadcast(broadcastIntent);
 
-                    throw new Exception("Proxy server not configured in settings. Please configure proxy server first.");
+                        throw new Exception("Proxy server not configured in settings. Please configure proxy server first.");
+                    }
                 }
 
-                int port;
-                try {
-                    port = Integer.parseInt(portStr);
-                    if (port <= 0 || port > 65535) {
-                        log("ERROR: Invalid proxy port: " + port);
-                        throw new Exception("Invalid proxy port: " + port);
+                int port = 0; // Default port
+                // Validate port only for protocols that need it
+                if (!proxyType.equals("Direct") && !proxyType.equals("Reject")) {
+                    try {
+                        port = Integer.parseInt(portStr);
+                        if (port <= 0 || port > 65535) {
+                            log("ERROR: Invalid proxy port: " + port);
+                            throw new Exception("Invalid proxy port: " + port);
+                        }
+                    } catch (NumberFormatException e) {
+                        log("ERROR: Invalid port format: " + portStr);
+                        throw new Exception("Invalid port format: " + portStr);
                     }
-                } catch (NumberFormatException e) {
-                    log("ERROR: Invalid port format: " + portStr);
-                    throw new Exception("Invalid port format: " + portStr);
                 }
 
                 // Log configuration (without password)
-                log(String.format("Starting tun2socks with %s://%s:%d (user: %s)",
-                    proxyType.toLowerCase(), server, port, username.isEmpty() ? "none" : username));
+                if (proxyType.equals("Direct")) {
+                    log("Starting tun2socks with Direct connection (no proxy)");
+                } else if (proxyType.equals("Reject")) {
+                    log("Starting tun2socks with Reject mode (blocking all connections)");
+                } else {
+                    log(String.format("Starting tun2socks with %s://%s:%d (user: %s)",
+                        proxyType.toLowerCase(), server, port, username.isEmpty() ? "none" : username));
+                }
 
                 // Start the native tun2socks process with proxy configuration
                 Tun2Socks.Start(tunFd.getFd(), proxyType, server, port, username, password);

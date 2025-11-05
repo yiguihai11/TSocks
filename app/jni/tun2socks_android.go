@@ -36,15 +36,21 @@ type Config struct {
 
 // NewConfig creates a new configuration with proper validation
 func NewConfig(fd int, proxyType, server, username, password string, port int) (*Config, error) {
-	// Input validation
+	// Input validation for file descriptor
 	if fd <= 0 {
 		return nil, fmt.Errorf("invalid file descriptor: %d", fd)
 	}
-	if strings.TrimSpace(server) == "" {
-		return nil, fmt.Errorf("proxy server cannot be empty")
-	}
-	if port <= 0 || port > 65535 {
-		return nil, fmt.Errorf("invalid proxy port: %d (must be 1-65535)", port)
+
+	protocol := strings.ToLower(proxyType)
+
+	// Skip server and port validation for Direct and Reject protocols
+	if protocol != "direct" && protocol != "reject" {
+		if strings.TrimSpace(server) == "" {
+			return nil, fmt.Errorf("proxy server cannot be empty for %s protocol", proxyType)
+		}
+		if port <= 0 || port > 65535 {
+			return nil, fmt.Errorf("invalid proxy port: %d (must be 1-65535) for %s protocol", port, proxyType)
+		}
 	}
 
 	device := fmt.Sprintf("fd://%d", fd)
@@ -69,14 +75,20 @@ func NewConfig(fd int, proxyType, server, username, password string, port int) (
 			return nil
 		},
 		func() error {
-			if strings.TrimSpace(server) == "" {
-				return fmt.Errorf("proxy server cannot be empty")
+			// Skip server validation for Direct and Reject protocols
+			if protocol != "direct" && protocol != "reject" {
+				if strings.TrimSpace(server) == "" {
+					return fmt.Errorf("proxy server cannot be empty for %s protocol", proxyType)
+				}
 			}
 			return nil
 		},
 		func() error {
-			if port <= 0 || port > 65535 {
-				return fmt.Errorf("invalid proxy port: %d", port)
+			// Skip port validation for Direct and Reject protocols
+			if protocol != "direct" && protocol != "reject" {
+				if port <= 0 || port > 65535 {
+					return fmt.Errorf("invalid proxy port: %d for %s protocol", port, proxyType)
+				}
 			}
 			return nil
 		},
@@ -87,14 +99,27 @@ func NewConfig(fd int, proxyType, server, username, password string, port int) (
 
 // buildProxyURL builds proxy URL with proper authentication format
 func buildProxyURL(proxyType, server, username, password string, port int) (string, error) {
+	protocol := strings.ToLower(proxyType)
+
+	// Handle special protocols that don't need proxy URLs
+	switch protocol {
+	case "direct":
+		return "direct", nil
+	case "reject":
+		return "reject", nil
+	case "relay":
+		return "relay://", nil
+	}
+
 	var builder strings.Builder
 
-	protocol := strings.ToLower(proxyType)
 	switch {
 	case protocol == "http" || protocol == "https":
 		builder.WriteString("http://")
 	case protocol == "socks5":
 		builder.WriteString("socks5://")
+	case protocol == "socks4":
+		builder.WriteString("socks4://")
 	default:
 		return "", fmt.Errorf("unsupported proxy type: %s", proxyType)
 	}
@@ -286,9 +311,13 @@ func StopGlobalEngine() {
 type ProxyType string
 
 const (
-	ProxyTypeSOCKS5 ProxyType = "socks5"
-	ProxyTypeHTTP   ProxyType = "http"
-	ProxyTypeHTTPS  ProxyType = "https"
+	ProxyTypeSOCKS5  ProxyType = "socks5"
+	ProxyTypeHTTP    ProxyType = "http"
+	ProxyTypeHTTPS   ProxyType = "https"
+	ProxyTypeSOCKS4  ProxyType = "socks4"
+	ProxyTypeDirect  ProxyType = "direct"
+	ProxyTypeReject  ProxyType = "reject"
+	ProxyTypeRelay   ProxyType = "relay"
 )
 
 // SupportedProxyTypes map
@@ -296,6 +325,10 @@ var SupportedProxyTypes = map[ProxyType]bool{
 	ProxyTypeSOCKS5: true,
 	ProxyTypeHTTP:   true,
 	ProxyTypeHTTPS:  true,
+	ProxyTypeSOCKS4: true,
+	ProxyTypeDirect: true,
+	ProxyTypeReject: true,
+	ProxyTypeRelay:  true,
 }
 
 // ValidateProxyType validates proxy type
