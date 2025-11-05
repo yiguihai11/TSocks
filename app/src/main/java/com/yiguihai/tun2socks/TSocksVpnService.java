@@ -9,6 +9,9 @@ import android.util.Log;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,11 +84,16 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
 
                 // Start the native tun2socks process based on protocol with enhanced error handling
                 try {
+                    log("DEBUG: Starting native tun2socks with TUN FD: " + tunFd.getFd());
+                    log("DEBUG: Tun2Socks library loaded and available");
+
                     if (proxyType.equalsIgnoreCase("Direct")) {
                         log("Starting tun2socks with Direct connection (no proxy)");
+                        log("DEBUG: Using URL: direct://");
                         Tun2Socks.StartWithUrl(tunFd.getFd(), "direct://");
                     } else if (proxyType.equalsIgnoreCase("Reject")) {
                         log("Starting tun2socks with Reject mode (blocking all connections)");
+                        log("DEBUG: Using URL: reject://");
                         Tun2Socks.StartWithUrl(tunFd.getFd(), "reject://");
                     } else {
                         int port = 0; // Default port
@@ -102,11 +110,24 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
 
                         log(String.format("Starting tun2socks with %s://%s:%d (user: %s)",
                             proxyType.toLowerCase(), server, port, username.isEmpty() ? "none" : username));
+                        log("DEBUG: Using traditional Start method with parameters");
                         Tun2Socks.Start(tunFd.getFd(), proxyType, server, port, username, password);
                     }
 
-                    // Add a small delay to verify native startup
-                    Thread.sleep(200);
+                    // Add delay to verify native startup and test connectivity
+                    Thread.sleep(500);
+
+                    // Test network connectivity after startup
+                    testNetworkConnectivity();
+
+                    // Get connection statistics from native library
+                    try {
+                        int stats = Tun2Socks.getStats();
+                        log("Native library stats: " + stats);
+                    } catch (Exception e) {
+                        log("WARNING: Could not get stats from native library: " + e.getMessage());
+                    }
+
                     log("Native tun2socks started successfully");
 
                 } catch (UnsatisfiedLinkError e) {
@@ -190,8 +211,12 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
             }
         }
 
+        // IMPORTANT: Exclude our own app from VPN so we can test network connectivity
+        // This prevents circular routing where VPN traffic tries to go through itself
         try {
-            builder.addDisallowedApplication(getPackageName());
+            String packageName = getPackageName();
+            log("DEBUG: Excluding own package from VPN: " + packageName);
+            builder.addDisallowedApplication(packageName);
         } catch (Exception e) {
             Log.e(TAG, "Failed to exclude own package", e);
         }
@@ -299,6 +324,62 @@ public class TSocksVpnService extends VpnService implements Tun2Socks.Logger {
             vpnThread.interrupt();
         }
         stopVpn();
+    }
+
+    /**
+     * Test network connectivity after VPN startup
+     */
+    private void testNetworkConnectivity() {
+        log("=== Testing Network Connectivity ===");
+
+        // Test DNS resolution
+        try {
+            log("Testing DNS resolution for google.com...");
+            InetAddress[] addresses = InetAddress.getAllByName("google.com");
+            log("DNS resolution successful: " + addresses.length + " addresses found");
+            for (InetAddress addr : addresses) {
+                log("  - " + addr.getHostAddress());
+            }
+        } catch (Exception e) {
+            log("ERROR: DNS resolution failed: " + e.getMessage());
+        }
+
+        // Test HTTP connectivity (in a separate thread to avoid blocking)
+        new Thread(() -> {
+            try {
+                log("Testing HTTP connectivity to http://httpbin.org/ip...");
+                URL url = new URL("http://httpbin.org/ip");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setRequestMethod("GET");
+
+                int responseCode = conn.getResponseCode();
+                log("HTTP response code: " + responseCode);
+
+                if (responseCode == 200) {
+                    String response = new String(conn.getInputStream().readAllBytes());
+                    log("HTTP response: " + response);
+                } else {
+                    log("HTTP request failed with code: " + responseCode);
+                }
+                conn.disconnect();
+            } catch (Exception e) {
+                log("ERROR: HTTP connectivity test failed: " + e.getMessage());
+            }
+        }).start();
+
+        // Test basic ping functionality
+        try {
+            log("Testing ping to 8.8.8.8...");
+            InetAddress address = InetAddress.getByName("8.8.8.8");
+            boolean reachable = address.isReachable(3000);
+            log("Ping to 8.8.8.8: " + (reachable ? "SUCCESS" : "FAILED"));
+        } catch (Exception e) {
+            log("ERROR: Ping test failed: " + e.getMessage());
+        }
+
+        log("=== Network Connectivity Test Complete ===");
     }
 
     @Override
