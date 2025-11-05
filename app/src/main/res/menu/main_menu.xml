@@ -2,26 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/action_about"
-        android:title="About"
-        android:icon="@drawable/ic_info"
-        app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/action_help"
-        android:title="Help"
-        android:icon="@drawable/ic_help"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_export_config"
-        android:title="Export Config"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_import_config"
-        android:title="Import Config"
-        app:showAsAction="never" />
 
 </menu>

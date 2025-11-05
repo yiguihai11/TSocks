@@ -363,60 +363,12 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_about) {
-            showAboutDialog();
-            return true;
-        } else if (id == R.id.action_help) {
-            showHelpDialog();
-            return true;
-        } else if (id == R.id.action_export_config) {
-            exportConfiguration();
-            return true;
-        } else if (id == R.id.action_import_config) {
-            importConfiguration();
-            return true;
-        }
+        // NOTE: About, Help, and Import/Export menu items were removed as they were non-functional or incomplete.
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void showAboutDialog() {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("About TSocks")
-               .setMessage("TSocks - Modern VPN Client\n\nVersion: 1.0\n\nFeatures:\n• SOCKS5/HTTP Proxy Support\n• Shadowsocks Protocol\n• Material 3 Design\n• Real-time Statistics\n\nBuilt with ❤️ using Go and Android")
-               .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-               .show();
-    }
 
-    private void showHelpDialog() {
-        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-        builder.setTitle("Help & Guide")
-               .setMessage("How to use TSocks:\n\n" +
-                       "1. Configure Proxy:\n" +
-                       "   • Tap Settings button\n" +
-                       "   • Enter proxy server details\n" +
-                       "   • Select protocol type\n\n" +
-                       "2. Select Apps (Optional):\n" +
-                       "   • Tap Apps button\n" +
-                       "   • Choose which apps use VPN\n\n" +
-                       "3. Connect:\n" +
-                       "   • Tap Connect or FAB button\n" +
-                       "   • Grant VPN permission\n" +
-                       "   • Monitor connection status\n\n" +
-                       "Need help? Contact support!")
-               .setPositiveButton("Got it", (dialog, which) -> dialog.dismiss())
-               .show();
-    }
-
-    private void exportConfiguration() {
-        // TODO: Implement configuration export functionality
-        showToast("Export feature coming soon!");
-    }
-
-    private void importConfiguration() {
-        // TODO: Implement configuration import functionality
-        showToast("Import feature coming soon!");
-    }
 
     private void showStatistics() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);

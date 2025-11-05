@@ -11,9 +11,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/xjasonlyu/tun2socks/v2/engine"
 )
@@ -64,7 +66,7 @@ func NewConfig(fd int, proxyType, server, username, password string, port int) (
 		mtu:      1500,
 		device:   device,
 		proxy:    proxyURL,
-		logLevel: "warning", // Changed to warning to reduce log spam
+		logLevel: "warn", // Changed to warning to reduce log spam
 	}
 
 	return config, nil
