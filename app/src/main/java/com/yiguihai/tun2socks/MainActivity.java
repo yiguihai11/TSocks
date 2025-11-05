@@ -275,14 +275,14 @@ public class MainActivity extends AppCompatActivity {
 
         if (statusText != null) {
             statusText.setText("Connecting...");
-            statusText.setTextColor(getResources().getColor(R.color.design_default_color_primary, null));
+            statusText.setTextColor(getResources().getColor(R.color.md_theme_light_primary, null));
         }
         if (connectButton != null) {
             connectButton.setText("Connecting...");
             connectButton.setEnabled(false); // Disable button during connection
         }
         if (statusIndicator != null) {
-            statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.design_default_color_primary, null));
+            statusIndicator.setCardBackgroundColor(getResources().getColor(R.color.md_theme_light_primary, null));
         }
         if (fab != null) {
             // Set FAB to show connecting state
