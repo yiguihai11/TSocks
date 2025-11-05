@@ -163,7 +163,7 @@ public class SettingsActivity extends AppCompatActivity {
         editor.putBoolean(PREF_IPV6_ENABLED, ipv6Switch.isChecked());
         editor.putInt(PREF_APP_FILTER_MODE, appFilterModeRadioGroup.getCheckedRadioButtonId());
         editor.putString(PREF_EXCLUDED_IPS, excludedIpsEditText.getText().toString());
-        editor.apply();
+        editor.commit();
     }
 
     private void handleProtocolChange(String protocol) {
